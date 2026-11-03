@@ -1,0 +1,4 @@
+arcs available 24 edges m 8 degree classes tested 200
+A connected 123 disconnected 77
+B connected 9 disconnected 191
+A+C3 connected 174 disconnected 26

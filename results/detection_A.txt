@@ -1,0 +1,44 @@
+observed mean degree 3.456 K 5.112 Kdir 1.675
+null  K_dir values: [1.674754, 1.674754, 1.674754, 1.674754, 1.674754]  K values: [5.124, 5.124, 5.121, 5.115, 5.124]
+graph 0 shadow edges 1731 obs dist 3 null median dist 1001 obs reach 571 null median reach 498 p_dist 0.015 p_reach 0.245
+graph 1 shadow edges 1754 obs dist 3 null median dist 18 obs reach 651 null median reach 595 p_dist 0.020 p_reach 0.050
+graph 2 shadow edges 1734 obs dist 3 null median dist 1001 obs reach 601 null median reach 574 p_dist 0.010 p_reach 0.360
+graph 3 shadow edges 1741 obs dist 3 null median dist 8 obs reach 618 null median reach 591 p_dist 0.085 p_reach 0.165
+graph 4 shadow edges 1729 obs dist 3 null median dist 15 obs reach 597 null median reach 538 p_dist 0.015 p_reach 0.035
+graph 5 shadow edges 1731 obs dist 3 null median dist 18 obs reach 615 null median reach 590 p_dist 0.015 p_reach 0.280
+graph 6 shadow edges 1708 obs dist 3 null median dist 11 obs reach 520 null median reach 584 p_dist 0.035 p_reach 0.875
+graph 7 shadow edges 1748 obs dist 3 null median dist 16 obs reach 625 null median reach 591 p_dist 0.015 p_reach 0.170
+graph 8 shadow edges 1736 obs dist 3 null median dist 1001 obs reach 535 null median reach 563 p_dist 0.030 p_reach 0.775
+graph 9 shadow edges 1736 obs dist 3 null median dist 11 obs reach 623 null median reach 599 p_dist 0.025 p_reach 0.135
+graph 10 shadow edges 1760 obs dist 3 null median dist 12 obs reach 595 null median reach 596 p_dist 0.005 p_reach 0.510
+graph 11 shadow edges 1828 obs dist 3 null median dist 7 obs reach 675 null median reach 670 p_dist 0.070 p_reach 0.380
+graph 12 shadow edges 1752 obs dist 3 null median dist 12 obs reach 593 null median reach 570 p_dist 0.025 p_reach 0.235
+graph 13 shadow edges 1736 obs dist 3 null median dist 9 obs reach 619 null median reach 627 p_dist 0.040 p_reach 0.585
+graph 14 shadow edges 1759 obs dist 3 null median dist 8 obs reach 615 null median reach 617 p_dist 0.080 p_reach 0.530
+graph 15 shadow edges 1774 obs dist 3 null median dist 11 obs reach 608 null median reach 621 p_dist 0.020 p_reach 0.730
+graph 16 shadow edges 1612 obs dist 3 null median dist 19 obs reach 426 null median reach 390 p_dist 0.040 p_reach 0.245
+graph 17 shadow edges 1789 obs dist 3 null median dist 10 obs reach 617 null median reach 612 p_dist 0.030 p_reach 0.440
+graph 18 shadow edges 1747 obs dist 3 null median dist 18 obs reach 626 null median reach 611 p_dist 0.015 p_reach 0.335
+graph 19 shadow edges 1758 obs dist 3 null median dist 12 obs reach 646 null median reach 606 p_dist 0.010 p_reach 0.055
+graph 20 shadow edges 1732 obs dist 3 null median dist 14 obs reach 635 null median reach 628 p_dist 0.015 p_reach 0.385
+graph 21 shadow edges 1760 obs dist 3 null median dist 11 obs reach 585 null median reach 596 p_dist 0.035 p_reach 0.675
+graph 22 shadow edges 1741 obs dist 3 null median dist 11 obs reach 564 null median reach 516 p_dist 0.030 p_reach 0.050
+graph 23 shadow edges 1739 obs dist 3 null median dist 13 obs reach 617 null median reach 602 p_dist 0.015 p_reach 0.325
+graph 24 shadow edges 1746 obs dist 3 null median dist 15 obs reach 583 null median reach 598 p_dist 0.010 p_reach 0.730
+graph 25 shadow edges 1770 obs dist 3 null median dist 11 obs reach 620 null median reach 613 p_dist 0.020 p_reach 0.405
+graph 26 shadow edges 1795 obs dist 3 null median dist 11 obs reach 641 null median reach 622 p_dist 0.020 p_reach 0.225
+graph 27 shadow edges 1743 obs dist 3 null median dist 11 obs reach 654 null median reach 622 p_dist 0.045 p_reach 0.090
+graph 28 shadow edges 1770 obs dist 3 null median dist 13 obs reach 629 null median reach 578 p_dist 0.035 p_reach 0.280
+graph 29 shadow edges 1720 obs dist 3 null median dist 19 obs reach 604 null median reach 567 p_dist 0.015 p_reach 0.220
+graph 30 shadow edges 1744 obs dist 3 null median dist 16 obs reach 546 null median reach 571 p_dist 0.015 p_reach 0.880
+graph 31 shadow edges 1759 obs dist 3 null median dist 10 obs reach 575 null median reach 586 p_dist 0.070 p_reach 0.675
+graph 32 shadow edges 1759 obs dist 3 null median dist 12 obs reach 590 null median reach 625 p_dist 0.020 p_reach 0.745
+graph 33 shadow edges 1728 obs dist 3 null median dist 16 obs reach 549 null median reach 580 p_dist 0.010 p_reach 0.645
+graph 34 shadow edges 1732 obs dist 3 null median dist 10 obs reach 577 null median reach 580 p_dist 0.045 p_reach 0.525
+graph 35 shadow edges 1705 obs dist 3 null median dist 1001 obs reach 584 null median reach 601 p_dist 0.010 p_reach 0.730
+graph 36 shadow edges 1727 obs dist 3 null median dist 11 obs reach 659 null median reach 634 p_dist 0.015 p_reach 0.115
+graph 37 shadow edges 1749 obs dist 3 null median dist 10 obs reach 557 null median reach 564 p_dist 0.065 p_reach 0.590
+graph 38 shadow edges 1743 obs dist 3 null median dist 24 obs reach 602 null median reach 611 p_dist 0.015 p_reach 0.615
+graph 39 shadow edges 1735 obs dist 3 null median dist 8 obs reach 591 null median reach 602 p_dist 0.055 p_reach 0.675
+unplanted pairs 1000 false-positive rate dist 0.022 reach 0.025
+planted instances 40 power dist 0.850 reach 0.075

@@ -1,0 +1,4673 @@
+WEBVTT
+
+00:00.000 --> 00:13.640
+You know, usually when you picture the architecture of the digital world, like the software running your bank, your car, your phone, there is this comforting expectation of precision.
+
+00:14.200 --> 00:16.260
+Right. Yeah. You want it to be exact.
+
+00:16.600 --> 00:20.340
+Exactly. It feels like it should operate like structural engineering.
+
+00:20.340 --> 00:31.580
+I mean, if you look at a blueprint of a skyscraper, you can trace exactly how the weight of the roof transfers, you know, down the steel columns into the foundation and finally into the bedrock.
+
+00:31.880 --> 00:33.520
+It's visible. Yeah. It's documented.
+
+00:33.840 --> 00:35.500
+Yeah. And above all, it's a closed system.
+
+00:36.040 --> 00:41.700
+Right. It feels totally deterministic. I mean, the steel beam is either rated for the load or it isn't.
+
+00:42.020 --> 00:45.040
+And the engineer knows exactly where every single beam came from.
+
+00:45.040 --> 00:54.740
+But then you step into the actual reality of modern software development, specifically, and this is what we're getting into today, the world of software dependencies.
+
+00:55.340 --> 00:58.960
+And suddenly that pristine blueprint is completely illegible.
+
+00:59.500 --> 00:59.940
+Oh, it's a mess.
+
+01:00.240 --> 01:03.760
+It really is. You aren't just building with your own steel beams anymore.
+
+01:03.760 --> 01:15.220
+You are automatically importing thousands of beams overnight from, like, total strangers all over the world, trusting that they are solid metal and not, say, hollow plastic filled with termites.
+
+01:15.360 --> 01:16.480
+Which is a terrifying thought.
+
+01:16.780 --> 01:20.020
+It is. We are looking at a landscape that is incredibly murky.
+
+01:20.280 --> 01:26.320
+And if you are joining us today, it's because you want to understand these complex, unseen systems running our digital lives.
+
+01:26.420 --> 01:30.620
+And you want to do it without getting buried in impenetrable computer science jargon.
+
+01:30.800 --> 01:32.880
+Yeah, we're going to keep it grounded.
+
+01:32.880 --> 01:33.360
+Exactly.
+
+01:33.800 --> 01:38.540
+So today we are taking a deep dive into a piece of independent research by Flyxion.
+
+01:39.060 --> 01:43.260
+It's titled, Percolation Screening on the Cross-Boundary Shadow Graph.
+
+01:43.420 --> 01:43.940
+Quite a title.
+
+01:44.240 --> 01:45.120
+I know, right?
+
+01:45.640 --> 01:47.760
+But our mission for this deep dive is actually pretty clear.
+
+01:48.080 --> 01:56.320
+We are going to explore how advanced network theory and complex mathematics are being used to map the hidden vulnerabilities in software dependencies.
+
+01:56.320 --> 02:06.040
+And we are tracking how a single malicious command, just buried deep in a library you didn't even know you downloaded, might find a secret tunnel straight to your most sensitive data.
+
+02:06.040 --> 02:17.600
+Yeah, and the central tension here is how this paper takes these highly abstract mathematical concepts, like percolation theory, which traditionally I think studies how liquids flow through porous materials, right?
+
+02:17.780 --> 02:18.460
+Right, exactly.
+
+02:18.940 --> 02:20.460
+And the evolution of random graphs.
+
+02:20.460 --> 02:24.740
+It takes those and applies them to a very urgent practical question.
+
+02:24.920 --> 02:25.440
+Which is?
+
+02:25.940 --> 02:28.220
+How structurally vulnerable is our code really?
+
+02:28.220 --> 02:38.040
+It bridges pure mathematics and real-world cybersecurity, but it does so by forcing us to question how we even define a map of our software in the first place.
+
+02:38.620 --> 02:40.580
+Okay, let's start right there with the map.
+
+02:40.960 --> 02:45.540
+Because before we can even begin to find a vulnerability, we need to map the territory.
+
+02:45.780 --> 02:49.980
+But the source material immediately points out that a single map just isn't enough.
+
+02:50.120 --> 02:50.840
+No, it's really not.
+
+02:51.180 --> 02:55.320
+To understand what's happening, we actually need to look at two completely different interpretations of the system.
+
+02:55.320 --> 03:02.420
+Yeah, the foundation of this entire analysis rests on distinguishing between two distinct models of the software ecosystem.
+
+03:03.040 --> 03:08.260
+The baseline model is what the author calls the full graph, which is denoted mathematically as G.
+
+03:08.600 --> 03:08.880
+Okay.
+
+03:09.180 --> 03:11.500
+So think of a graph in the mathematical sense.
+
+03:11.960 --> 03:16.140
+You have vertices, which are dots, and edges, which are the lines connecting them.
+
+03:16.800 --> 03:20.040
+In the full graph, the vertices are the software symbols.
+
+03:20.520 --> 03:21.540
+By symbols, you mean?
+
+03:21.880 --> 03:25.260
+The individual functions, the classes, the specific variables.
+
+03:25.920 --> 03:28.180
+The actual microscopic building blocks of the code.
+
+03:28.500 --> 03:35.080
+So if I write a function called calculateTax, that function is just one dot on the graph.
+
+03:35.220 --> 03:35.660
+Precisely.
+
+03:36.020 --> 03:40.500
+And the edges, the lines connecting the dots, represent the functional relationships between them.
+
+03:40.660 --> 03:40.900
+Right.
+
+03:41.100 --> 03:48.400
+So if your calculateTax function calls another function named getTaxRate, an edge is drawn from the first to the second.
+
+03:48.940 --> 03:52.640
+This applies to memory references, shared types, inheritance, all of it.
+
+03:52.640 --> 03:53.360
+Got it.
+
+03:53.360 --> 04:01.020
+So the full graph is basically the exhaustive, microscopic picture of every single relationship in the software.
+
+04:01.360 --> 04:01.560
+Yes.
+
+04:02.020 --> 04:08.020
+It maps the internal logic inside a single package of code, and it maps the external calls between different packages.
+
+04:08.020 --> 04:12.340
+Okay, let's unpack this, because that brings us to the second map.
+
+04:12.680 --> 04:20.300
+If the full graph is the complete picture, we then have what the paper calls the shadow graph, or G shadow.
+
+04:20.660 --> 04:20.920
+Right.
+
+04:20.920 --> 04:22.340
+Let's use an analogy here.
+
+04:22.740 --> 04:25.520
+Imagine the full graph is a map of an entire country.
+
+04:25.520 --> 04:33.560
+It shows every single interstate highway, but it also maps every local street, every tiny alleyway, every dirt road, and every private driveway.
+
+04:34.020 --> 04:35.740
+It is overwhelmingly detailed.
+
+04:35.880 --> 04:36.440
+Yeah, exactly.
+
+04:37.060 --> 04:41.480
+The shadow graph takes that massive map and applies a huge filter to it.
+
+04:41.820 --> 04:44.060
+It completely erases all the local roads.
+
+04:44.060 --> 04:46.840
+It only shows you the highways that cross state lines.
+
+04:47.280 --> 04:48.500
+That's a really good way to visualize it.
+
+04:49.120 --> 04:53.840
+In the language of the paper, the shadow graph only retains edges that cross a package boundary.
+
+04:54.520 --> 04:56.140
+So internal stuff is just gone.
+
+04:56.460 --> 04:56.780
+Exactly.
+
+04:57.400 --> 05:05.640
+If a function calls another function within the exact same software package, say two internal helper functions talking to each other, that line is just deleted.
+
+05:05.840 --> 05:06.020
+Okay.
+
+05:06.020 --> 05:09.720
+You only see the connections jumping from one distinct package to another.
+
+05:10.460 --> 05:17.060
+You strip away the internal logic of the individual components to look purely at how the different components interact at a macro level.
+
+05:17.740 --> 05:23.940
+Which sounds great for simplifying things, but the text actually highlights a massive pitfall here.
+
+05:24.120 --> 05:32.760
+If you are a developer or a security researcher trying to secure a system, you cannot use the shadow graph to actually search for propagation paths.
+
+05:33.000 --> 05:33.920
+No, you really can't.
+
+05:33.920 --> 05:39.800
+You cannot use it to trace how a real attack might move, which honestly feels totally backwards to me.
+
+05:39.960 --> 05:46.220
+If it shows the connections between packages, wouldn't that be exactly what you want to track a supply chain attack?
+
+05:46.340 --> 05:48.160
+I mean, the attack comes from outside, right?
+
+05:48.820 --> 05:55.600
+The attack originates outside, yes, but its route is highly dependent on the internal roads you just erased.
+
+05:55.920 --> 05:56.320
+Oh.
+
+05:56.320 --> 06:04.100
+Yeah, the source provides this really devastating example of why searching for paths on the shadow graph fundamentally fails.
+
+06:05.420 --> 06:10.240
+Imagine a malicious dependency calls a public function located inside package A.
+
+06:10.400 --> 06:10.680
+Okay.
+
+06:11.160 --> 06:11.480
+Tracking.
+
+06:11.860 --> 06:15.660
+Now, that public function in package A doesn't do the sensitive work itself.
+
+06:16.140 --> 06:21.560
+It turns around and calls an internal helper function, which is also located inside package A.
+
+06:21.880 --> 06:22.980
+Right, on a local road.
+
+06:22.980 --> 06:23.420
+Exactly.
+
+06:24.320 --> 06:34.420
+Finally, that internal helper function reaches out and invokes a highly sensitive operation, like, say, deleting a file in a completely different package, package B.
+
+06:34.680 --> 06:34.940
+Okay.
+
+06:35.320 --> 06:35.580
+Okay.
+
+06:35.860 --> 06:43.520
+So the path goes from the malicious source, it goes into public A, and then it goes through internal A and out to sensitive B.
+
+06:43.760 --> 06:44.040
+Right.
+
+06:44.220 --> 06:44.480
+Okay.
+
+06:45.200 --> 06:47.540
+Now, look at that through the lens of the full graph.
+
+06:47.640 --> 06:49.540
+You see that continuous path perfectly.
+
+06:49.900 --> 06:50.840
+Every step is drawn.
+
+06:50.840 --> 06:52.580
+Right, because all the local roads are there.
+
+06:52.820 --> 06:53.080
+Yes.
+
+06:53.200 --> 06:53.380
+Okay.
+
+06:53.680 --> 06:53.920
+Yeah.
+
+06:54.300 --> 06:56.660
+But remember the rule of the shadow graph.
+
+06:56.880 --> 06:58.900
+It deletes all internal edges.
+
+06:59.460 --> 07:05.960
+So that vital link between the public function in package A and the internal helper in package A is completely erased from the map.
+
+07:06.220 --> 07:06.660
+Ugh.
+
+07:08.120 --> 07:08.600
+Oh.
+
+07:09.540 --> 07:10.440
+Oh, wow.
+
+07:10.440 --> 07:15.180
+So in the shadow graph, you'll see a line coming into package A from the attacker, right?
+
+07:15.320 --> 07:21.440
+And a totally separate line leaving package A, going to the sensitive file deleter, but they literally don't connect.
+
+07:21.780 --> 07:22.220
+Exactly.
+
+07:22.220 --> 07:26.440
+The appear as disconnected endpoints.
+
+07:27.040 --> 07:32.620
+The path is broken on the map, even though it functions perfectly in the real compiled software.
+
+07:32.840 --> 07:33.680
+That's wild.
+
+07:34.040 --> 07:35.920
+The author is very firm about this, too.
+
+07:36.260 --> 07:39.820
+Failing to find a threat in the shadow graph is not a sound negative test.
+
+07:40.280 --> 07:44.440
+Just because the shadow graph shows no complete root doesn't mean you are safe.
+
+07:44.440 --> 07:56.140
+Well, I have to push back here, then, because if filtering out the internal edges actively breaks the attack paths and hides the vulnerabilities, why on earth would we even bother building the shadow graph?
+
+07:56.380 --> 07:57.180
+That's a fair question.
+
+07:57.280 --> 07:59.460
+It sounds like we're just deliberately breaking our own map.
+
+07:59.560 --> 08:01.320
+Why not just use the full graph all the time?
+
+08:01.680 --> 08:08.280
+Because the full graph is computationally overwhelming and often way too noisy to understand the systemic risk.
+
+08:08.820 --> 08:12.240
+The shadow graph isn't meant for finding a specific attacker's path.
+
+08:12.240 --> 08:14.360
+Its job is purely macroscopic.
+
+08:15.100 --> 08:15.780
+Macroscopic.
+
+08:16.260 --> 08:17.320
+Like, big picture.
+
+08:17.540 --> 08:17.740
+Right.
+
+08:18.140 --> 08:21.800
+It is designed to measure the structural exposure of the entire system.
+
+08:22.300 --> 08:23.880
+It answers a completely different question.
+
+08:24.280 --> 08:26.900
+How much boundary crossing is happening overall?
+
+08:26.980 --> 08:27.500
+Oh, I see.
+
+08:27.740 --> 08:32.380
+Is your software architecture highly modular, where packages mind their own business?
+
+08:32.920 --> 08:38.240
+Or is it a tangled mess, where every package is constantly whispering to every other package?
+
+08:38.260 --> 08:38.620
+Gotcha.
+
+08:38.800 --> 08:42.540
+The shadow graph gives you the big picture of your system's porosity.
+
+08:42.540 --> 08:56.140
+But the paper concludes that when you shift from assessing general risk to doing actual weakness searches, meaning looking for specific actionable attack routes, you have to revert to the full graph, where every internal road is intact.
+
+08:56.140 --> 08:57.520
+Okay, that makes sense.
+
+08:57.520 --> 09:07.220
+It's like the difference between looking at climate data to see if you live in a hurricane zone versus looking at your house's specific blueprints to see if the roof will cave in.
+
+09:07.340 --> 09:07.660
+Exactly.
+
+09:07.660 --> 09:12.180
+You need the macro view for the threat landscape and the micro view to actually patch the hole.
+
+09:12.720 --> 09:16.780
+So, assuming we have these maps, we need to know how interconnected they really are.
+
+09:17.220 --> 09:21.380
+Are we looking at a software ecosystem that is basically a set of isolated islands?
+
+09:21.380 --> 09:29.280
+Or are we looking at one massive, globally connected supercontinent where a vulnerability in one tiny package could compromise everything?
+
+09:29.280 --> 09:37.340
+And to figure that out, we have to look at how things spread, which is where the paper introduces the Erdos-Renny evolution of random graphs.
+
+09:37.820 --> 09:38.080
+Right.
+
+09:38.080 --> 09:47.280
+To give some context, Paul Erdos and Alfred Drenny were mathematicians who, in the mid-20th century, basically invented the study of random networks.
+
+09:48.020 --> 09:49.360
+They asked a really simple question.
+
+09:49.920 --> 09:57.700
+If you have a bunch of isolated points and you randomly start drawing lines between them, at what point does the whole thing suddenly connect together?
+
+09:58.020 --> 10:02.100
+Like dropping a bunch of buttons on the floor and randomly tying threads between pairs of them.
+
+10:02.300 --> 10:06.100
+Eventually, you'll pick up one button and the whole pile will just come up with it.
+
+10:06.100 --> 10:07.360
+That's a perfect analogy.
+
+10:07.360 --> 10:12.020
+And in classical Erdos-Renny theory, that transition happens very abruptly.
+
+10:13.060 --> 10:17.360
+But the paper quickly notes that classical models don't work for software.
+
+10:18.160 --> 10:18.420
+Why not?
+
+10:18.800 --> 10:23.440
+Because Erdos-Renny assumes every button has roughly the same chance of getting a thread.
+
+10:24.020 --> 10:27.000
+The resulting network has a bell curve distribution of connections.
+
+10:27.220 --> 10:29.480
+Most nodes have an average number of links.
+
+10:30.200 --> 10:33.000
+But software doesn't look like a bell curve.
+
+10:33.340 --> 10:36.100
+It has a heavy-tailed or power law distribution.
+
+10:36.100 --> 10:37.100
+Right, right.
+
+10:37.160 --> 10:41.360
+Because you have thousands of tiny packages that maybe have one or two connections.
+
+10:41.640 --> 10:50.380
+And then you have massive utility libraries like requests or URL lib in Python that are imported by literally millions of other projects.
+
+10:50.500 --> 10:51.980
+They are massive hubs.
+
+10:51.980 --> 10:52.700
+Exactly.
+
+10:52.700 --> 11:01.960
+Because of those hubs, the author relies on something called the Molloy-Reed criterion, which is specifically tailored for networks with highly variable connection counts.
+
+11:02.500 --> 11:02.620
+Okay.
+
+11:02.620 --> 11:08.440
+The core of this criterion centers on a specific mathematical ratio denoted as K.
+
+11:08.440 --> 11:11.540
+Yeah, I was looking at this formula in the notes.
+
+11:11.760 --> 11:16.860
+K equals the average of the squared degrees divided by the average degree.
+
+11:17.440 --> 11:22.860
+And for anyone not steeped in graph theory, the degree of a dot is just how many lines connect to it.
+
+11:23.080 --> 11:23.140
+Right.
+
+11:23.140 --> 11:26.000
+But why square the degrees?
+
+11:26.440 --> 11:30.820
+If you want to know how connected a network is, why not just take the average number of connections?
+
+11:31.360 --> 11:33.220
+This is a crucial mechanical point.
+
+11:33.780 --> 11:38.880
+The text explicitly warrants that just taking the mean degree is a terrible summary for software.
+
+11:39.520 --> 11:43.000
+Let's actually do the math out loud to see why squaring them matters so much.
+
+11:43.280 --> 11:43.520
+Okay.
+
+11:43.900 --> 11:44.360
+Let's do it.
+
+11:44.360 --> 11:46.900
+Imagine a network with 10 packages.
+
+11:47.680 --> 11:50.380
+Nine of those packages only have one connection each.
+
+11:50.940 --> 11:54.540
+But the 10th package is a massive hub with 100 connections.
+
+11:54.560 --> 11:54.700
+Okay.
+
+11:54.900 --> 11:57.980
+So a total of 109 connections across 10 packages.
+
+11:58.320 --> 12:00.440
+The average degree is roughly 11.
+
+12:00.780 --> 12:01.100
+Right.
+
+12:01.840 --> 12:05.160
+And an average of 11 makes the network sound moderately connected.
+
+12:05.680 --> 12:10.480
+It completely masks the reality that there is one massive super hub controlling everything.
+
+12:11.040 --> 12:12.580
+Ah, I see where this is going.
+
+12:12.580 --> 12:17.380
+Now let's look at the numerator of the K-ratio, the average of the squared degrees.
+
+12:18.180 --> 12:22.760
+You square the ones, which stays one, but you square that 100 and it becomes 10,000.
+
+12:22.860 --> 12:23.320
+Oh, wow.
+
+12:23.700 --> 12:23.920
+Yeah.
+
+12:24.560 --> 12:29.280
+Suddenly, the math heavily penalizes or rather heavily highlights the hubs.
+
+12:30.420 --> 12:35.380
+By dividing the average of the squares by the standard average, the K-ratio mathematically
+
+12:35.380 --> 12:37.780
+forces those giant hubs to reveal themselves.
+
+12:38.360 --> 12:42.100
+It tells you how much the network relies on centralized choke points.
+
+12:42.100 --> 12:43.900
+That makes so much sense.
+
+12:44.020 --> 12:48.060
+It mathematically exposes the gravity of the big packages.
+
+12:48.600 --> 12:53.820
+And the paper states that if this K-ratio is greater than 2, the network enters the supercritical
+
+12:53.820 --> 12:54.340
+regime.
+
+12:54.740 --> 12:57.980
+What exactly does supercritical mean in this context?
+
+12:58.400 --> 13:00.940
+It means a giant component emerges.
+
+13:01.420 --> 13:01.720
+Okay.
+
+13:01.900 --> 13:03.800
+This isn't just a large cluster.
+
+13:03.960 --> 13:08.240
+It's a massive interconnected web that scales with the size of the whole network.
+
+13:08.520 --> 13:09.260
+So it's everywhere.
+
+13:09.260 --> 13:14.720
+Basically, if a software graph is supercritical, it means a huge portion of the code is mutually
+
+13:14.720 --> 13:15.300
+accessible.
+
+13:15.920 --> 13:18.540
+A virus or a vulnerability isn't isolated.
+
+13:18.960 --> 13:21.460
+It has the highways to travel almost anywhere.
+
+13:21.860 --> 13:25.020
+But the author doesn't just blindly trust this K-formula either.
+
+13:25.280 --> 13:30.680
+They offer a brilliant, specific example of how this mathematical threshold can trick you
+
+13:30.680 --> 13:31.320
+if you aren't careful.
+
+13:31.320 --> 13:33.240
+Yes, the archipelago example.
+
+13:33.620 --> 13:33.940
+Exactly.
+
+13:34.400 --> 13:39.340
+Let's walk through it because it shows the danger of relying on averages, even weighted
+
+13:39.340 --> 13:40.000
+averages.
+
+13:40.680 --> 13:45.180
+Imagine a graph made entirely of isolated four vertex cliques.
+
+13:45.660 --> 13:45.920
+Okay.
+
+13:46.180 --> 13:47.580
+So picture an archipelago.
+
+13:47.860 --> 13:48.940
+Little islands of code.
+
+13:49.700 --> 13:52.540
+On each island, there are exactly four dots.
+
+13:53.220 --> 13:56.980
+And on that specific island, every dot connects to the other three.
+
+13:56.980 --> 13:57.020
+Right.
+
+13:57.480 --> 13:59.820
+It's a perfectly interconnected little square.
+
+14:00.200 --> 14:00.420
+Right.
+
+14:00.760 --> 14:05.580
+But, and this is the key, none of the islands connect to each other.
+
+14:06.060 --> 14:06.300
+Right.
+
+14:06.740 --> 14:10.100
+So on every single island, every dot has exactly three connections.
+
+14:10.500 --> 14:13.260
+This means the average degree of the whole network is three.
+
+14:13.820 --> 14:14.920
+The square of three is nine.
+
+14:15.440 --> 14:17.000
+So the average of the squares is nine.
+
+14:17.160 --> 14:17.680
+Following you?
+
+14:17.680 --> 14:23.660
+If you run the Molloy-Reed math, nine divided by three, your k ratio is exactly three.
+
+14:24.380 --> 14:25.820
+And remember the rule we just talked about.
+
+14:26.200 --> 14:31.720
+If k is greater than two, the math says you are in the supercritical regime, and you should
+
+14:31.720 --> 14:34.560
+expect a massive, giant component connecting everything.
+
+14:34.980 --> 14:36.260
+But here, k is three.
+
+14:36.820 --> 14:40.860
+But if we look at our physical map of the archipelago, we just have a bunch of tiny,
+
+14:41.020 --> 14:41.880
+isolated islands.
+
+14:42.220 --> 14:45.340
+No single connected component is larger than four vertices.
+
+14:45.940 --> 14:46.360
+Exactly.
+
+14:46.360 --> 14:51.660
+The math says expect a giant continent, but reality is a bunch of rowboats.
+
+14:52.360 --> 14:53.580
+So why did the math fail?
+
+14:54.100 --> 14:58.260
+Well, it didn't fail so much as it meant an edge case it wasn't designed for.
+
+14:58.720 --> 15:03.020
+The k ratio describes the typical behavior in a random ensemble of graphs.
+
+15:03.440 --> 15:05.920
+It assumes connections are made somewhat independently.
+
+15:06.400 --> 15:08.040
+Oh, and the islands aren't independent.
+
+15:08.440 --> 15:08.780
+Right.
+
+15:09.280 --> 15:13.340
+In this island example, the graph is perfectly unnaturally clustered.
+
+15:13.680 --> 15:14.580
+It's highly atypical.
+
+15:14.580 --> 15:16.980
+The author uses this to prove a limitation.
+
+15:17.920 --> 15:22.860
+k measures the propensity of a network to branch out, but it absolutely does not guarantee
+
+15:22.860 --> 15:27.880
+that the specific, heavily clustered code sitting on your laptop is actually a giant
+
+15:27.880 --> 15:28.400
+superconduct.
+
+15:28.400 --> 15:33.800
+Which brings up a fascinating distinction the paper makes about threat models, because, you
+
+15:33.800 --> 15:39.320
+know, if we are looking for how things connect, traditional network theorists and cyber attackers,
+
+15:39.540 --> 15:41.340
+they actually want completely different things.
+
+15:41.480 --> 15:41.820
+Very true.
+
+15:42.700 --> 15:46.620
+You know, network theorists, they often look for what they call strong connectivity, and
+
+15:46.620 --> 15:50.480
+that's like measured by a direct, let's see, like a directed version of the ratio.
+
+15:50.480 --> 15:52.300
+So it's like k-dir.
+
+15:53.140 --> 15:57.560
+When k-dir is greater than one, you expect a giant strongly connected component.
+
+15:57.560 --> 16:02.920
+And strongly connected in directed graphs means that not only can you get from point A to
+
+16:02.920 --> 16:07.380
+point B following the arrows, but there is also a path following the arrows to get from
+
+16:07.380 --> 16:09.220
+point B back to point A.
+
+16:09.460 --> 16:09.760
+Right.
+
+16:10.080 --> 16:12.000
+I was thinking about this like a water system.
+
+16:12.900 --> 16:16.120
+Traditional network theorists are essentially looking for a whirlpool.
+
+16:16.120 --> 16:21.160
+They want a system where the water can circle endlessly, flowing from the top down to the
+
+16:21.160 --> 16:23.560
+bottom, and being pumped right back up to the top.
+
+16:23.800 --> 16:24.340
+That's a good visual.
+
+16:24.920 --> 16:30.220
+But if you are a hacker executing a supply chain attack, you do not need a whirlpool.
+
+16:30.760 --> 16:33.140
+You just need a water tower and a drain.
+
+16:33.340 --> 16:35.160
+That is a highly accurate way to frame it.
+
+16:35.380 --> 16:37.800
+You just need gravity to pull the water down one time.
+
+16:38.220 --> 16:38.660
+Exactly.
+
+16:39.360 --> 16:45.120
+An attacker just needs a pure source, say a maliciously injected dependency at the very top
+
+16:45.120 --> 16:50.200
+of the software chain, to reach a pure sync, which is your sensitive operation, like a
+
+16:50.200 --> 16:52.120
+database deletion command at the bottom.
+
+16:52.500 --> 16:53.300
+They don't need to go backwards.
+
+16:53.600 --> 16:53.800
+Right.
+
+16:54.040 --> 16:57.560
+The code execution doesn't need to flow back up to the malicious package.
+
+16:58.200 --> 17:03.200
+Therefore, having a k-dir greater than one is not a prerequisite for a massive compromise.
+
+17:03.820 --> 17:09.260
+A directed chain of a thousand packages has a k-dir of zero because nothing flows backward.
+
+17:09.860 --> 17:13.980
+But a single attack at the start can reach all 1,000 downstream targets.
+
+17:13.980 --> 17:16.080
+The operational threat isn't a loop.
+
+17:16.420 --> 17:18.040
+It's a one-way street of damage.
+
+17:18.300 --> 17:20.820
+But this raises a methodological problem for the author.
+
+17:21.280 --> 17:21.600
+What's that?
+
+17:21.980 --> 17:27.180
+Well, we can measure a software graph, find it has heavy clustering or a high k-ratio.
+
+17:27.560 --> 17:30.860
+But is that actually evidence of a vulnerable malicious structure?
+
+17:31.080 --> 17:34.340
+Or is that just what natural human-written software looks like?
+
+17:34.500 --> 17:35.160
+Oh, interesting.
+
+17:35.160 --> 17:40.600
+To prove that the vulnerabilities we find are structurally significant, we have to create
+
+17:40.600 --> 17:41.240
+a control group.
+
+17:41.560 --> 17:45.040
+We need a null ensemble to compare reality against.
+
+17:45.360 --> 17:48.400
+Let's get into the mechanics of this control group.
+
+17:48.940 --> 17:54.240
+How do you create a randomized baseline for something as complex as a software architecture?
+
+17:54.900 --> 17:59.560
+The paper proposes creating random graphs that act as our null hypothesis.
+
+18:00.060 --> 18:01.900
+But they have to be fair comparisons.
+
+18:01.900 --> 18:03.740
+You can't just throw dots on a page.
+
+18:04.220 --> 18:04.240
+Right.
+
+18:04.320 --> 18:05.420
+That wouldn't mean anything.
+
+18:05.580 --> 18:05.880
+Exactly.
+
+18:06.420 --> 18:11.500
+The random graphs must perfectly preserve three strict properties from the original software.
+
+18:12.220 --> 18:17.080
+The in-degree of every vertex, the out-degree of every vertex, and the package labels.
+
+18:17.320 --> 18:22.900
+Meaning if my calculate-tax function originally had two functions calling it and it called five
+
+18:22.900 --> 18:28.240
+other functions, it must keep exactly two incoming lines and five outgoing lines in the randomized
+
+18:28.240 --> 18:28.740
+version.
+
+18:28.740 --> 18:29.820
+Yes, exactly.
+
+18:30.340 --> 18:35.760
+It preserves the local traffic volume of every single piece of code, but it completely scrambles
+
+18:35.760 --> 18:36.760
+who is talking to whom.
+
+18:37.000 --> 18:37.400
+Got it.
+
+18:37.660 --> 18:42.600
+And to do this scrambling, the author uses a technique called directed double-edged swaps.
+
+18:43.020 --> 18:45.520
+Let me make sure I understand the mechanics of the swap.
+
+18:46.040 --> 18:48.020
+Why a double-edged swap?
+
+18:48.140 --> 18:50.100
+Why not just pick one line and move its endpoint?
+
+18:50.620 --> 18:54.380
+Because if you just take a line pointing from A to B and you move its sort of points from A
+
+18:54.380 --> 18:56.560
+to C, you just ruin the degrees.
+
+18:57.180 --> 18:57.760
+Oh, I see.
+
+18:57.760 --> 19:00.640
+B just lost an incoming connection, and C just gained one.
+
+19:01.360 --> 19:04.880
+Your control group no longer matches the original software's local traffic rules.
+
+19:05.260 --> 19:05.920
+Oh, okay.
+
+19:06.140 --> 19:07.080
+So you have to swap pairs.
+
+19:07.700 --> 19:12.220
+Let's say connection one goes from point A to point B. Connection two goes from point
+
+19:12.220 --> 19:16.540
+C to point D. To scramble them without changing the totals, you swap the destinations.
+
+19:17.360 --> 19:19.880
+So now A points to D and C points to B.
+
+19:20.060 --> 19:20.380
+Exactly.
+
+19:20.780 --> 19:24.040
+Every point still has the exact same number of arrows leaving and entering.
+
+19:24.040 --> 19:24.960
+Precisely.
+
+19:25.420 --> 19:31.180
+As long as doing that swap doesn't create an illegal self-loop, like a function calling itself when it didn't before,
+
+19:31.560 --> 19:33.700
+or a duplicate edge, you make the swap.
+
+19:34.160 --> 19:40.600
+By executing this double swap thousands of times, you create a deeply randomized version of your software graph
+
+19:40.600 --> 19:43.340
+that still obeys all the macro rules of the original.
+
+19:43.340 --> 19:46.200
+But the author hits a mathematical wall here.
+
+19:46.720 --> 19:50.960
+Something called a disconnected state space, or irreducibility.
+
+19:51.520 --> 19:56.520
+This is where it gets really deep into the weeds, but the implications for researchers are huge.
+
+19:57.100 --> 19:59.740
+What exactly causes the state space to disconnect?
+
+19:59.740 --> 20:05.660
+It boils down to the fact that just because you are randomly swapping edges doesn't mean you can
+
+20:05.660 --> 20:08.400
+mathematically reach every possible valid graph shape.
+
+20:09.100 --> 20:11.000
+You can get trapped in a pocket of possibilities.
+
+20:11.720 --> 20:12.020
+How?
+
+20:12.280 --> 20:16.480
+If you can swap any two edges, shouldn't you eventually be able to shuffle into any combination?
+
+20:16.860 --> 20:18.340
+Not with the constraints we have.
+
+20:18.960 --> 20:20.780
+The paper gives a minimalist example.
+
+20:21.040 --> 20:23.860
+Imagine just three dots, vertices 1, 2, and 3.
+
+20:23.860 --> 20:28.980
+The rule is that each dot must have exactly one incoming edge and one outgoing edge.
+
+20:29.540 --> 20:33.280
+The only way to satisfy that rule is a directed cycle, a triangle.
+
+20:33.820 --> 20:37.540
+One points to two, two points to three, and three points to one.
+
+20:37.700 --> 20:38.800
+Okay, a closed loop.
+
+20:39.240 --> 20:44.100
+Now, there are two valid ways that triangle can flow, clockwise or counterclockwise.
+
+20:44.700 --> 20:48.920
+Both are perfectly valid configurations with the exact same in and out degrees.
+
+20:49.080 --> 20:49.400
+Right.
+
+20:49.400 --> 20:54.560
+But if you start with the clockwise triangle and you try to use a double-edged swap to randomize it,
+
+20:54.920 --> 20:56.020
+you literally can't.
+
+20:56.540 --> 20:58.040
+Wait, let me think about that.
+
+20:58.400 --> 21:04.560
+If I take the edge from 1 to 2 and the edge from 2 to 3 and I try to swap their destinations,
+
+21:04.980 --> 21:05.100
+Right.
+
+21:05.560 --> 21:08.700
+1 would point to 3, but 2 would point to 2.
+
+21:08.940 --> 21:09.360
+Exactly.
+
+21:09.880 --> 21:12.120
+You instantly create an illegal self-loop.
+
+21:12.900 --> 21:16.740
+Any valid swap you attempt between two edges in that triangle will break the rules.
+
+21:17.060 --> 21:18.400
+You are stuck.
+
+21:18.400 --> 21:19.240
+Oh, wow.
+
+21:19.400 --> 21:23.920
+You could never randomly swap your way from the clockwise triangle to the counterclockwise triangle.
+
+21:24.560 --> 21:28.580
+The state space of all possible graphs is physically disconnected.
+
+21:28.960 --> 21:35.220
+So, if the randomizer gets stuck in one isolated corner of the universe and can't explore all the possibilities,
+
+21:35.740 --> 21:37.420
+how can we trust the comparison?
+
+21:37.600 --> 21:41.420
+I mean, it's like trying to calculate the average temperature of the Earth,
+
+21:41.540 --> 21:44.460
+but your thermometer is physically locked inside a walk-in freezer.
+
+21:44.940 --> 21:46.980
+The control group is inherently biased.
+
+21:46.980 --> 21:50.760
+This is a major issue in Markov chain Monte Carlo simulations.
+
+21:50.760 --> 21:58.640
+Membership in a null ensemble doesn't magically guarantee that your samples are statistically fair or exchangeable.
+
+21:58.860 --> 21:59.820
+So how do they fix it?
+
+22:00.220 --> 22:05.980
+To solve this, the author implements a method developed by Bezag and Clifford called the pivot construction.
+
+22:06.380 --> 22:07.540
+I read this part a few times.
+
+22:07.540 --> 22:09.180
+Can we use an analogy here?
+
+22:09.600 --> 22:10.660
+I was trying to map it out.
+
+22:10.800 --> 22:12.740
+It's like shuffling a deck of cards, right?
+
+22:13.260 --> 22:14.180
+Let's run with that.
+
+22:14.860 --> 22:17.800
+How does the card shuffle map to the state space?
+
+22:17.800 --> 22:22.020
+Well, if you only swap two cards once, you haven't shuffled the deck.
+
+22:22.380 --> 22:24.960
+The deck is heavily biased by whatever order it started in.
+
+22:25.460 --> 22:29.420
+You are stuck in a disconnected state relative to a truly random deck.
+
+22:29.580 --> 22:29.700
+Right.
+
+22:30.160 --> 22:34.180
+If you deal hands from that deck and compare them to my perfectly randomized deck,
+
+22:34.660 --> 22:38.580
+the statistical comparison is totally invalid because our origins were different.
+
+22:38.780 --> 22:39.640
+Yes, exactly.
+
+22:39.640 --> 22:48.400
+So the pivot construction is the mathematical equivalent of giving the deck a massive standardized riffle shuffle before you deal the hands.
+
+22:49.120 --> 22:54.420
+Instead of comparing your observed software graph to a bunch of random graphs generated from scratch,
+
+22:54.660 --> 22:59.820
+you take your observed graph and you swap edges for a huge number of steps.
+
+22:59.960 --> 23:01.240
+Let's call it L steps.
+
+23:01.500 --> 23:02.760
+Right. You thoroughly shuffle.
+
+23:02.900 --> 23:06.120
+You thoroughly shuffle the deck to a new randomized state.
+
+23:06.860 --> 23:08.540
+This new state is the pivot.
+
+23:08.540 --> 23:09.900
+That is the crucial step.
+
+23:10.520 --> 23:11.980
+The pivot is the newly shuffled deck.
+
+23:12.680 --> 23:20.800
+From that exact pivot deck, you then run multiple independent chains of further shuffling to create your B comparison graphs.
+
+23:21.260 --> 23:24.960
+Because both your original graph, traced backward from the pivot,
+
+23:25.520 --> 23:28.840
+and your simulated graphs, traced forward from the pivot,
+
+23:29.560 --> 23:33.880
+can map their lineage back to this shared, reversible pivot point,
+
+23:34.460 --> 23:36.680
+every hand dealt is mathematically fair.
+
+23:36.680 --> 23:38.340
+It's a closed loop of fairness.
+
+23:38.540 --> 23:38.900
+Yeah.
+
+23:39.360 --> 23:42.320
+It ensures your statistical comparison is actually valid,
+
+23:42.820 --> 23:46.680
+even if the entire universe of possible card combinations hasn't been explored.
+
+23:46.680 --> 23:50.700
+That is a phenomenal way to explain the pivot construction.
+
+23:51.360 --> 23:55.080
+It forces statistical exchangeability under the null hypothesis.
+
+23:55.500 --> 23:57.600
+It grounds the comparison in rigorous fairness.
+
+23:57.600 --> 24:01.680
+So when we say this software is unusually vulnerable,
+
+24:01.880 --> 24:05.740
+we know it's a mathematical fact, not an artifact of a bad randomizer.
+
+24:05.740 --> 24:10.080
+Okay, so our null model proves our software's connectivity isn't a fluke.
+
+24:10.080 --> 24:13.320
+We know the system is structurally vulnerable at a macro level.
+
+24:13.960 --> 24:16.720
+But how does an attacker actually exploit that?
+
+24:16.940 --> 24:20.260
+Moving from macroscopic statistics to microscopic reality,
+
+24:20.500 --> 24:24.700
+how do we find the specific microscopic path an attacker might take?
+
+24:24.700 --> 24:29.060
+This is where the paper shifts to finding actual witnesses and choke points.
+
+24:29.260 --> 24:29.400
+Right.
+
+24:30.240 --> 24:32.040
+Here's where it gets really interesting.
+
+24:32.780 --> 24:33.720
+Let's define the terminology.
+
+24:34.360 --> 24:39.080
+Finding a path on the graph simply means tracing a labeled walk from an entry vertex,
+
+24:39.420 --> 24:41.640
+the specific function where an attacker injects their code,
+
+24:41.920 --> 24:45.580
+to a sensitive set, the specific operation they want to hijack.
+
+24:45.580 --> 24:49.040
+But the author throws a massive bucket of cold water on this right away.
+
+24:49.780 --> 24:51.860
+They emphasize a crucial caveat.
+
+24:52.760 --> 24:56.460
+A graph path is only a candidate capability path.
+
+24:56.960 --> 24:57.460
+By candidate.
+
+24:57.760 --> 25:01.740
+This might be the most important practical takeaway for a developer listening to this.
+
+25:02.440 --> 25:06.120
+Just because a line exists on paper or on your full graph map
+
+25:06.120 --> 25:09.560
+does not mean it can actually execute in the real world.
+
+25:10.340 --> 25:12.640
+A graph witness is just structural proof.
+
+25:13.040 --> 25:14.820
+I want to dig into how that happens.
+
+25:14.820 --> 25:18.880
+Because if the code literally says function A calls function B,
+
+25:19.340 --> 25:20.220
+doesn't it call it?
+
+25:20.640 --> 25:21.900
+How can the map be wrong?
+
+25:22.440 --> 25:23.460
+The map isn't wrong.
+
+25:23.860 --> 25:25.060
+It's just static.
+
+25:25.700 --> 25:28.300
+It lacks the dimension of time and state.
+
+25:29.360 --> 25:29.700
+Oh.
+
+25:30.100 --> 25:33.380
+A sequence of calls might look perfectly connected structurally.
+
+25:33.720 --> 25:37.440
+But at runtime, it might require incompatible branch conditions.
+
+25:38.300 --> 25:42.140
+For example, function A might only call function B
+
+25:42.140 --> 25:45.900
+if a specific user role variable is set to admin.
+
+25:46.480 --> 25:47.040
+Right.
+
+25:47.040 --> 25:49.600
+But to reach function A in the first place,
+
+25:50.140 --> 25:53.320
+maybe the attacker had to exploit a vulnerability in a public portal
+
+25:53.320 --> 25:56.520
+that forcibly sets the user role to guest.
+
+25:56.520 --> 26:04.100
+So structurally, the path from the portal to A to B exists on the map.
+
+26:04.340 --> 26:09.260
+But functionally, it is impossible to traverse because the required variables contradict each other.
+
+26:09.980 --> 26:10.420
+Exactly.
+
+26:11.080 --> 26:13.040
+You also have conflicting file permissions,
+
+26:13.600 --> 26:14.420
+hardware constraints,
+
+26:14.420 --> 26:18.740
+or specific runtime states that the static parser simply cannot see.
+
+26:19.780 --> 26:21.580
+So a graph witness is basically saying,
+
+26:22.120 --> 26:25.140
+hey, there is a physical road between these two cities,
+
+26:25.300 --> 26:28.380
+but it doesn't tell you if there is a massive steel gate
+
+26:28.380 --> 26:30.280
+locked across the road halfway down
+
+26:30.280 --> 26:32.980
+or if the bridge is currently drawn up.
+
+26:33.160 --> 26:34.620
+It's a candidate path.
+
+26:35.200 --> 26:35.520
+Yes.
+
+26:35.520 --> 26:39.120
+The graph tells you exactly where to aim your magnifying glass,
+
+26:39.300 --> 26:43.420
+but a human or a dynamic execution engine still has to investigate
+
+26:43.420 --> 26:45.880
+to see if it's a truly executable exploit.
+
+26:46.300 --> 26:46.540
+Yes.
+
+26:46.940 --> 26:49.200
+And when we do map these candidate attack routes,
+
+26:49.640 --> 26:52.180
+we need a vocabulary to describe the robustness.
+
+26:52.600 --> 26:55.320
+How hard is it for a defender to block the attack?
+
+26:55.680 --> 26:57.820
+They use a concept called disjointness.
+
+26:58.420 --> 26:59.680
+Let's get into disjointness,
+
+26:59.880 --> 27:01.920
+because the paper splits it into two flavors,
+
+27:02.320 --> 27:05.320
+edge disjoint and vertex disjoint paths.
+
+27:05.520 --> 27:07.120
+What is the mechanical difference?
+
+27:07.660 --> 27:10.120
+Think of the entry point and the sensitive target.
+
+27:10.660 --> 27:13.120
+How many distinct ways can the attacker get there?
+
+27:13.460 --> 27:17.000
+If you have multiple paths that don't share a single edge,
+
+27:17.400 --> 27:19.400
+meaning they don't use any of the same connections,
+
+27:19.900 --> 27:21.720
+those are edge disjoint paths.
+
+27:22.160 --> 27:23.420
+But there's a trap there, right?
+
+27:23.720 --> 27:24.440
+A huge trap.
+
+27:24.920 --> 27:27.080
+Two paths might use completely different edges,
+
+27:27.080 --> 27:30.480
+but they might both pass through the exact same intermediate vertex.
+
+27:31.120 --> 27:34.060
+Say they both utilize a shared utility function,
+
+27:34.060 --> 27:36.060
+like a universal string formatter.
+
+27:36.380 --> 27:36.500
+Okay.
+
+27:36.760 --> 27:39.780
+If that string formatter goes down, both paths break.
+
+27:40.280 --> 27:42.680
+If you have paths that share absolutely nothing,
+
+27:42.880 --> 27:45.360
+no edges and no intermediate vertices,
+
+27:45.740 --> 27:47.560
+those are vertex disjoint paths.
+
+27:47.960 --> 27:50.880
+Which brings us to the holy grail of defensive analysis,
+
+27:51.540 --> 27:52.580
+the essential vertices.
+
+27:52.580 --> 27:56.340
+An essential vertex is a specific piece of code
+
+27:56.340 --> 27:57.800
+that, if you remove it,
+
+27:58.000 --> 28:00.320
+completely eliminates every single route
+
+28:00.320 --> 28:02.580
+from the entry to the sensitive set.
+
+28:03.140 --> 28:04.640
+It is the ultimate choke point.
+
+28:04.880 --> 28:05.100
+Right.
+
+28:05.520 --> 28:06.560
+If you are a defender,
+
+28:06.860 --> 28:08.760
+finding an essential vertex is gold.
+
+28:08.940 --> 28:11.520
+It tells you exactly where to focus your patching efforts.
+
+28:11.920 --> 28:13.700
+It is gold for triaging, absolutely.
+
+28:14.260 --> 28:15.980
+But the author specifically warns
+
+28:15.980 --> 28:18.180
+against a naive approach to essential vertices.
+
+28:18.900 --> 28:20.940
+Identifying the choke point is just step one.
+
+28:21.520 --> 28:23.980
+You cannot just delete the essential vertex
+
+28:23.980 --> 28:25.520
+and declare the system secure.
+
+28:25.860 --> 28:26.380
+Right.
+
+28:26.480 --> 28:27.380
+I was thinking about this.
+
+28:27.500 --> 28:30.440
+What if the essential vertex is the core function
+
+28:30.440 --> 28:31.900
+that authenticates users
+
+28:31.900 --> 28:33.880
+or saves data to the hard drive?
+
+28:34.020 --> 28:34.300
+Exactly.
+
+28:34.500 --> 28:35.460
+If you just delete it,
+
+28:35.780 --> 28:37.340
+sure, you stopped the hacker's path,
+
+28:37.440 --> 28:39.740
+but you also bricked the entire software
+
+28:39.740 --> 28:40.800
+for legitimate users.
+
+28:41.560 --> 28:42.920
+Fixing a choke point usually means
+
+28:42.920 --> 28:44.100
+adding sanitization
+
+28:44.100 --> 28:46.820
+or permission checks inside that vertex,
+
+28:46.820 --> 28:48.660
+not just ripping it out of the wall.
+
+28:49.240 --> 28:50.620
+And to truly understand the difference
+
+28:50.620 --> 28:52.260
+between simply finding a path
+
+28:52.260 --> 28:54.140
+and understanding how vulnerable
+
+28:54.140 --> 28:55.960
+that path actually makes your system,
+
+28:56.620 --> 28:59.280
+the author takes a brilliant interdisciplinary leap.
+
+28:59.700 --> 29:02.080
+They borrow an analogy from material science,
+
+29:02.440 --> 29:05.020
+specifically the physics of porous batteries.
+
+29:05.760 --> 29:06.360
+I have to say,
+
+29:06.440 --> 29:07.640
+when I was reading the source notes
+
+29:07.640 --> 29:09.700
+and suddenly we were deep in the weeds
+
+29:09.700 --> 29:11.240
+of 3D porous electrodes,
+
+29:11.460 --> 29:13.000
+I was a bit lost.
+
+29:13.000 --> 29:15.560
+But when you unpack the mechanics of it,
+
+29:15.620 --> 29:17.400
+it is a phenomenal crossover insight.
+
+29:17.900 --> 29:18.920
+It requires some translation,
+
+29:19.280 --> 29:21.920
+but the physics map perfectly to software security.
+
+29:22.600 --> 29:25.160
+The author cites a study by Rodriguez et al.,
+
+29:25.160 --> 29:26.800
+which looked at the microstructures
+
+29:26.800 --> 29:29.040
+of four different 3D porous electrodes.
+
+29:29.380 --> 29:30.180
+So, batteries.
+
+29:30.500 --> 29:30.700
+Right.
+
+29:31.060 --> 29:33.480
+These are basically microscopic sponges
+
+29:33.480 --> 29:34.680
+made of conducting material.
+
+29:35.540 --> 29:36.680
+The researchers wanted to see
+
+29:36.680 --> 29:38.020
+how well they conducted electricity
+
+29:38.020 --> 29:40.300
+from one face of the sponge to the other.
+
+29:40.300 --> 29:41.920
+And the first thing they measured
+
+29:41.920 --> 29:44.100
+was something called spanning connectivity.
+
+29:44.580 --> 29:44.700
+Right.
+
+29:45.480 --> 29:47.820
+Spanning connectivity asks a binary question.
+
+29:48.660 --> 29:50.680
+Is there an unbroken physical path
+
+29:50.680 --> 29:51.720
+of conducting material
+
+29:51.720 --> 29:54.020
+from the inlet face to the outlet face?
+
+29:54.200 --> 29:54.880
+Like a flood fill.
+
+29:55.120 --> 29:55.360
+Yes.
+
+29:55.720 --> 29:57.520
+If you were to do a flood fill algorithm,
+
+29:57.640 --> 29:59.440
+like the paint bucket tool in Photoshop,
+
+29:59.740 --> 30:00.660
+starting at one side,
+
+30:01.000 --> 30:02.420
+would the paint eventually bleed through
+
+30:02.420 --> 30:03.080
+to the other side?
+
+30:03.380 --> 30:04.400
+And the data they got back
+
+30:04.400 --> 30:06.000
+was incredibly counterintuitive.
+
+30:06.420 --> 30:08.020
+They simulated four different
+
+30:08.020 --> 30:09.600
+microscopic sponge structures,
+
+30:09.600 --> 30:11.360
+all four of them successfully
+
+30:11.360 --> 30:12.160
+spanned the volume.
+
+30:12.720 --> 30:14.300
+The fractions of conducting material
+
+30:14.300 --> 30:15.720
+that spanned from side to side
+
+30:15.720 --> 30:16.700
+were almost identical,
+
+30:16.960 --> 30:21.660
+0.996, 0.999, 0.997, and 0.901.
+
+30:21.760 --> 30:22.480
+Very close.
+
+30:22.840 --> 30:23.580
+So, structurally,
+
+30:23.740 --> 30:25.440
+they all looked like nearly perfect,
+
+30:25.560 --> 30:26.820
+identical conductors.
+
+30:27.240 --> 30:28.260
+But then they simulated
+
+30:28.260 --> 30:30.300
+applying a voltage across the faces
+
+30:30.300 --> 30:31.260
+to measure the actual
+
+30:31.260 --> 30:32.400
+effective conductivity,
+
+30:32.840 --> 30:34.260
+how well electricity actually
+
+30:34.260 --> 30:35.380
+flowed through them in practice.
+
+30:36.020 --> 30:37.880
+And the conductivity varied wildly.
+
+30:37.880 --> 30:40.200
+Let me look at the numbers.
+
+30:40.720 --> 30:42.260
+The normalized conductivities were
+
+30:42.260 --> 30:49.000
+0.306, 0.303, 0.706, and 0.134.
+
+30:49.400 --> 30:50.440
+Wait, let me look at that.
+
+30:51.200 --> 30:53.420
+Three of those volumes had spanning sizes
+
+30:53.420 --> 30:55.680
+within three one thousandths of each other,
+
+30:55.780 --> 30:57.840
+0.996, 0.997, 0.999.
+
+30:58.320 --> 31:01.220
+They looked identical to the spanning metric.
+
+31:01.440 --> 31:01.660
+Yep.
+
+31:01.660 --> 31:04.220
+Yet their actual physical conductivity
+
+31:04.220 --> 31:08.640
+was 0.306, 0.303, and 0.706.
+
+31:09.300 --> 31:10.820
+The third one conducted electricity
+
+31:10.820 --> 31:12.940
+more than twice as well as the others.
+
+31:13.480 --> 31:13.860
+Exactly.
+
+31:14.260 --> 31:15.900
+Let's translate this physics lesson
+
+31:15.900 --> 31:17.100
+back into software security.
+
+31:17.860 --> 31:18.800
+Spanning a volume,
+
+31:19.380 --> 31:20.480
+doing that flood fill
+
+31:20.480 --> 31:21.740
+to see if electricity can get
+
+31:21.740 --> 31:22.920
+from the inlet to the outlet,
+
+31:23.440 --> 31:24.880
+is exactly the same concept
+
+31:24.880 --> 31:26.220
+as finding a witness path
+
+31:26.220 --> 31:27.200
+in a software graph.
+
+31:27.640 --> 31:28.380
+Okay, I'm tracking.
+
+31:28.380 --> 31:30.980
+It just proves that a structural connection
+
+31:30.980 --> 31:33.220
+exists from the attacker's entry point
+
+31:33.220 --> 31:34.300
+to the sensitive data.
+
+31:35.080 --> 31:36.720
+So a standard security scanner
+
+31:36.720 --> 31:38.740
+that just says warning, path found,
+
+31:38.940 --> 31:41.300
+is only measuring spanning connectivity.
+
+31:41.840 --> 31:42.340
+Precisely.
+
+31:42.980 --> 31:44.420
+And the conductivity of the battery
+
+31:44.420 --> 31:46.040
+is the security equivalent
+
+31:46.040 --> 31:48.080
+of the robustness of the attack.
+
+31:48.680 --> 31:49.920
+Oh, that makes so much sense.
+
+31:50.540 --> 31:52.080
+How many independent routes exist?
+
+31:52.540 --> 31:54.120
+What is the minimum cut,
+
+31:54.400 --> 31:55.600
+the minimum number of edges
+
+31:55.600 --> 31:56.440
+you'd have to sever
+
+31:56.440 --> 31:57.720
+to break the connection?
+
+31:57.720 --> 31:59.320
+How many choke points are there?
+
+31:59.940 --> 32:00.880
+It's the difference
+
+32:00.880 --> 32:02.000
+between a four-lane highway
+
+32:02.000 --> 32:03.700
+and a rickety wooden footbridge.
+
+32:04.100 --> 32:05.900
+They both span the river.
+
+32:06.140 --> 32:07.800
+If you just ask, can it cross?
+
+32:08.000 --> 32:09.620
+The answer is yes for both,
+
+32:09.900 --> 32:11.220
+but they conduct traffic
+
+32:11.220 --> 32:11.940
+very differently.
+
+32:12.400 --> 32:12.800
+Exactly.
+
+32:13.280 --> 32:15.000
+If a software path relies
+
+32:15.000 --> 32:17.100
+on a single, fragile choke point,
+
+32:17.320 --> 32:18.600
+it might span the system,
+
+32:18.820 --> 32:19.920
+but its conductivity
+
+32:19.920 --> 32:21.660
+for an attacker is very low.
+
+32:21.880 --> 32:23.300
+It's cheap to remediate.
+
+32:23.400 --> 32:24.800
+You just guard that one bridge.
+
+32:24.800 --> 32:26.880
+But a system with multiple
+
+32:26.880 --> 32:28.820
+vertex disjoint attack routes
+
+32:28.820 --> 32:30.160
+has high conductivity.
+
+32:30.700 --> 32:31.740
+It is highly vulnerable,
+
+32:32.180 --> 32:33.420
+even if the sheer length
+
+32:33.420 --> 32:33.980
+of the paths
+
+32:33.980 --> 32:35.460
+looks identical on paper.
+
+32:36.080 --> 32:38.000
+Now, academic rigor requires us
+
+32:38.000 --> 32:38.960
+to point out the flaws,
+
+32:39.300 --> 32:40.520
+and the author responsibly
+
+32:40.520 --> 32:41.480
+applies the brakes here.
+
+32:42.280 --> 32:43.140
+They issue cautions
+
+32:43.140 --> 32:44.180
+about fully relying
+
+32:44.180 --> 32:45.300
+on the quantitative math
+
+32:45.300 --> 32:46.360
+of that battery study.
+
+32:46.700 --> 32:47.400
+Right, because it wasn't
+
+32:47.400 --> 32:48.040
+a perfect study.
+
+32:48.260 --> 32:48.860
+No, it wasn't.
+
+32:48.860 --> 32:50.180
+The author notes
+
+32:50.180 --> 32:51.320
+that the Rodriguez study
+
+32:51.320 --> 32:53.020
+lacked experimental validation.
+
+32:53.440 --> 32:54.480
+It was purely simulated
+
+32:54.480 --> 32:55.140
+on a computer.
+
+32:56.060 --> 32:56.300
+Furthermore,
+
+32:56.560 --> 32:57.660
+the massive conclusion
+
+32:57.660 --> 32:58.520
+about the variance
+
+32:58.520 --> 32:59.280
+in conductivity
+
+32:59.280 --> 33:01.640
+was based on a Pearson correlation
+
+33:01.640 --> 33:03.320
+of only four data points.
+
+33:03.580 --> 33:04.040
+Only four?
+
+33:04.260 --> 33:04.480
+Yeah.
+
+33:05.240 --> 33:06.040
+Four microstructures
+
+33:06.040 --> 33:08.240
+is a tiny sample size
+
+33:08.240 --> 33:10.540
+to build a generalized law upon.
+
+33:11.040 --> 33:12.100
+The author also mentions
+
+33:12.100 --> 33:13.040
+that the battery paper
+
+33:13.040 --> 33:13.660
+had confusing
+
+33:13.660 --> 33:15.020
+and contradictory definitions
+
+33:15.020 --> 33:16.640
+for its own bottleneck index.
+
+33:17.000 --> 33:17.300
+Okay.
+
+33:17.300 --> 33:19.720
+So, while the qualitative analogy
+
+33:19.720 --> 33:20.420
+is brilliant
+
+33:20.420 --> 33:22.100
+for changing how we think
+
+33:22.100 --> 33:23.460
+about software robustness,
+
+33:23.860 --> 33:25.540
+the actual mathematical formulas
+
+33:25.540 --> 33:26.660
+from the battery physics
+
+33:26.660 --> 33:28.480
+shouldn't be blindly pasted
+
+33:28.480 --> 33:29.500
+into network security.
+
+33:29.940 --> 33:30.820
+That's totally fair.
+
+33:31.040 --> 33:32.520
+It's a conceptual framework,
+
+33:32.660 --> 33:34.200
+not a plug-and-play algorithm.
+
+33:34.620 --> 33:35.600
+But speaking of testing
+
+33:35.600 --> 33:36.500
+mathematical theories,
+
+33:36.920 --> 33:37.700
+we've talked about
+
+33:37.700 --> 33:38.980
+a lot of high-level math,
+
+33:39.380 --> 33:40.040
+K-ratios,
+
+33:40.220 --> 33:41.100
+pivot constructions,
+
+33:41.300 --> 33:41.880
+minimum cuts.
+
+33:42.540 --> 33:43.180
+How do we know
+
+33:43.180 --> 33:44.320
+any of this actually works?
+
+33:44.760 --> 33:45.680
+We have to test it.
+
+33:45.680 --> 33:46.060
+Right.
+
+33:46.060 --> 33:47.060
+That brings us
+
+33:47.060 --> 33:47.900
+to a crucial part
+
+33:47.900 --> 33:48.320
+of the paper
+
+33:48.320 --> 33:49.060
+where the author
+
+33:49.060 --> 33:50.380
+rigorously stress-tests
+
+33:50.380 --> 33:50.860
+these metrics
+
+33:50.860 --> 33:52.120
+in a synthetic sandbox.
+
+33:52.800 --> 33:53.520
+And they didn't just use
+
+33:53.520 --> 33:54.920
+standard random graphs
+
+33:54.920 --> 33:55.660
+for this sandbox.
+
+33:56.020 --> 33:57.620
+They used the Chung-Loo model.
+
+33:58.200 --> 33:58.780
+What is that?
+
+33:59.140 --> 34:00.380
+As we discussed earlier,
+
+34:00.560 --> 34:02.080
+standard Erdos-Renyi graphs
+
+34:02.080 --> 34:03.440
+produce bell curves,
+
+34:03.860 --> 34:05.040
+which don't look like software.
+
+34:05.600 --> 34:07.080
+The Chung-Loo model
+
+34:07.080 --> 34:08.140
+allows researchers
+
+34:08.140 --> 34:09.580
+to generate random graphs
+
+34:09.580 --> 34:11.020
+that precisely match
+
+34:11.020 --> 34:12.480
+the heavy-tailed
+
+34:12.480 --> 34:14.240
+power law degree distributions
+
+34:14.240 --> 34:15.200
+we actually see
+
+34:15.200 --> 34:16.280
+in software ecosystems.
+
+34:16.860 --> 34:18.000
+They force the randomizer
+
+34:18.000 --> 34:19.000
+to create hubs.
+
+34:19.620 --> 34:20.140
+The author ran
+
+34:20.140 --> 34:21.160
+four key experiments
+
+34:21.160 --> 34:22.700
+in this synthetic sandbox,
+
+34:23.000 --> 34:23.820
+and I want to look at them
+
+34:23.820 --> 34:24.840
+as a unified narrative,
+
+34:25.020 --> 34:25.140
+you know,
+
+34:25.180 --> 34:25.920
+a quest to see if
+
+34:25.920 --> 34:27.000
+the math survives
+
+34:27.000 --> 34:28.080
+contact with reality.
+
+34:28.640 --> 34:29.080
+First,
+
+34:29.180 --> 34:29.720
+they had to prove
+
+34:29.720 --> 34:30.500
+the thresholds
+
+34:30.500 --> 34:31.340
+weren't just theoretical.
+
+34:31.680 --> 34:32.260
+They generated
+
+34:32.260 --> 34:33.360
+a network of
+
+34:33.360 --> 34:34.320
+3,000 vertices,
+
+34:34.720 --> 34:35.740
+3,000 simulated
+
+34:35.740 --> 34:36.580
+pieces of code,
+
+34:36.700 --> 34:38.240
+and watched what happened
+
+34:38.240 --> 34:39.100
+as they cranked up
+
+34:39.100 --> 34:39.620
+the connectivity.
+
+34:40.180 --> 34:40.440
+Right.
+
+34:40.440 --> 34:42.100
+What did the data show
+
+34:42.100 --> 34:42.600
+about the
+
+34:42.600 --> 34:43.920
+Molloy-Reed-K ratio?
+
+34:44.640 --> 34:45.600
+It proved the theory,
+
+34:45.980 --> 34:47.900
+but with a vivid reality check.
+
+34:48.380 --> 34:49.300
+As the network
+
+34:49.300 --> 34:50.420
+became more connected,
+
+34:50.920 --> 34:52.160
+the K ratio grew.
+
+34:52.920 --> 34:53.920
+When K went from
+
+34:53.920 --> 34:56.800
+2.77 to 5.76,
+
+34:57.580 --> 34:58.840
+the size of the largest
+
+34:58.840 --> 35:00.180
+weakly connected component,
+
+35:00.560 --> 35:02.360
+the giant continent of code,
+
+35:02.940 --> 35:03.780
+jumped from holding
+
+35:03.780 --> 35:05.780
+53.9% of the graph
+
+35:05.780 --> 35:06.900
+to a staggering
+
+35:06.900 --> 35:09.160
+93.9% of the graph.
+
+35:09.160 --> 35:10.520
+So it proves that
+
+35:10.520 --> 35:12.000
+the ratio is highly accurate
+
+35:12.000 --> 35:13.100
+at marking the onset
+
+35:13.100 --> 35:13.860
+of the tipping point.
+
+35:14.220 --> 35:15.300
+The moment K gets high,
+
+35:15.460 --> 35:16.400
+the graph coalesces
+
+35:16.400 --> 35:17.200
+into a monolith.
+
+35:17.780 --> 35:18.160
+Yes,
+
+35:18.500 --> 35:19.400
+but it also confirmed
+
+35:19.400 --> 35:20.640
+the limitation we discussed
+
+35:20.640 --> 35:22.040
+with the archipelago example.
+
+35:22.800 --> 35:24.260
+The ratio marks the onset,
+
+35:24.880 --> 35:25.740
+but it doesn't predict
+
+35:25.740 --> 35:26.680
+the exact size
+
+35:26.680 --> 35:27.960
+or shape of the component.
+
+35:28.540 --> 35:29.360
+It just tells you
+
+35:29.360 --> 35:30.140
+that you're operating
+
+35:30.140 --> 35:30.860
+in a regime
+
+35:30.860 --> 35:32.520
+where massive connectivity
+
+35:32.520 --> 35:33.120
+is the norm.
+
+35:33.600 --> 35:33.940
+Okay,
+
+35:34.180 --> 35:35.680
+so the threshold theory
+
+35:35.680 --> 35:36.240
+holds up.
+
+35:36.940 --> 35:37.280
+Next,
+
+35:37.380 --> 35:37.980
+they had to test
+
+35:37.980 --> 35:39.300
+their control group methodology.
+
+35:40.000 --> 35:42.180
+This was the irreducibility test.
+
+35:42.620 --> 35:43.180
+This goes back
+
+35:43.180 --> 35:44.440
+to our card shuffling analogy
+
+35:44.440 --> 35:45.700
+with the directed
+
+35:45.700 --> 35:46.900
+double edge swaps.
+
+35:47.180 --> 35:47.620
+Yes,
+
+35:47.760 --> 35:49.140
+the six vertex sandbox.
+
+35:49.600 --> 35:49.820
+Right,
+
+35:49.920 --> 35:50.540
+they tested this
+
+35:50.540 --> 35:51.580
+on a tiny sandbox
+
+35:51.580 --> 35:52.820
+of just six vertices
+
+35:52.820 --> 35:54.040
+to see how often
+
+35:54.040 --> 35:54.740
+the randomizer
+
+35:54.740 --> 35:55.320
+got stuck
+
+35:55.320 --> 35:56.840
+in a disconnected state space.
+
+35:57.040 --> 35:57.880
+And the results
+
+35:57.880 --> 35:58.860
+were stark.
+
+35:59.540 --> 36:00.020
+They found that
+
+36:00.020 --> 36:01.400
+even on a tiny graph,
+
+36:01.780 --> 36:02.380
+if you used
+
+36:02.380 --> 36:03.480
+unrestricted swaps,
+
+36:03.840 --> 36:04.660
+the state space
+
+36:04.660 --> 36:05.300
+was disconnected
+
+36:05.300 --> 36:06.600
+and up to 39%
+
+36:06.600 --> 36:07.680
+of the classes tested.
+
+36:08.260 --> 36:09.040
+The randomizer
+
+36:09.040 --> 36:09.640
+got trapped
+
+36:09.640 --> 36:11.440
+39% of the time.
+
+36:11.880 --> 36:12.220
+Wow.
+
+36:12.440 --> 36:13.220
+But it gets worse.
+
+36:13.740 --> 36:14.520
+They also tested
+
+36:14.520 --> 36:15.760
+a stricter swap method
+
+36:15.760 --> 36:16.880
+called Variant B,
+
+36:17.300 --> 36:18.060
+which forced swaps
+
+36:18.060 --> 36:18.700
+to only happen
+
+36:18.700 --> 36:19.480
+between the exact
+
+36:19.480 --> 36:20.760
+same pair of packages,
+
+36:21.260 --> 36:21.940
+trying to preserve
+
+36:21.940 --> 36:22.920
+even more structure.
+
+36:22.920 --> 36:24.360
+How did Variant B perform?
+
+36:25.120 --> 36:26.540
+It failed catastrophically.
+
+36:27.080 --> 36:27.800
+It was disconnected
+
+36:27.800 --> 36:29.380
+95% of the time.
+
+36:30.600 --> 36:31.200
+95%.
+
+36:31.200 --> 36:31.640
+Yes.
+
+36:31.640 --> 36:32.940
+This proved
+
+36:32.940 --> 36:33.500
+beyond a shadow
+
+36:33.500 --> 36:33.960
+of a doubt
+
+36:33.960 --> 36:35.320
+that a reachable component
+
+36:35.320 --> 36:36.040
+is a real
+
+36:36.040 --> 36:37.260
+mathematical restriction.
+
+36:37.860 --> 36:38.460
+If you use
+
+36:38.460 --> 36:39.400
+the wrong null model
+
+36:39.400 --> 36:40.680
+or don't use
+
+36:40.680 --> 36:41.520
+the pivot construction
+
+36:41.520 --> 36:42.380
+to properly shuffle
+
+36:42.380 --> 36:42.840
+the deck,
+
+36:43.280 --> 36:44.060
+your control group
+
+36:44.060 --> 36:44.680
+is fundamentally
+
+36:44.680 --> 36:46.420
+broken 95%
+
+36:46.420 --> 36:46.920
+of the time.
+
+36:47.560 --> 36:48.320
+Any statistical
+
+36:48.320 --> 36:49.280
+conclusions you draw
+
+36:49.280 --> 36:49.580
+from it
+
+36:49.580 --> 36:50.660
+are basically garbage.
+
+36:51.060 --> 36:52.220
+That is a massive
+
+36:52.220 --> 36:52.860
+red flag
+
+36:52.860 --> 36:53.780
+for any research
+
+36:53.780 --> 36:54.280
+here doing
+
+36:54.280 --> 36:55.360
+statistical analysis
+
+36:55.360 --> 36:56.100
+on networks.
+
+36:56.640 --> 36:57.340
+You can't skip
+
+36:57.340 --> 36:58.240
+the rigorous math.
+
+36:58.880 --> 36:59.020
+Okay.
+
+36:59.500 --> 37:00.800
+So the threshold works,
+
+37:00.800 --> 37:02.160
+the control group
+
+37:02.160 --> 37:03.200
+requires the pivot
+
+37:03.200 --> 37:03.780
+construction.
+
+37:04.620 --> 37:05.640
+Now for the third test,
+
+37:05.800 --> 37:07.000
+which honestly sounds
+
+37:07.000 --> 37:07.960
+like a spy novel,
+
+37:08.320 --> 37:09.980
+detecting planted paths.
+
+37:10.340 --> 37:11.000
+My favorite part.
+
+37:11.480 --> 37:12.820
+The author purposefully
+
+37:12.820 --> 37:14.560
+hid a secret malicious path,
+
+37:14.900 --> 37:16.020
+four packages long,
+
+37:16.420 --> 37:17.860
+inside the synthetic graphs.
+
+37:18.420 --> 37:19.020
+Then they tested
+
+37:19.020 --> 37:19.660
+two different
+
+37:19.660 --> 37:20.500
+statistical methods
+
+37:20.500 --> 37:21.320
+to see which one
+
+37:21.320 --> 37:22.300
+could find the hidden threat.
+
+37:22.540 --> 37:23.360
+They wanted to compare
+
+37:23.360 --> 37:24.460
+path-level statistics
+
+37:24.460 --> 37:25.800
+against global statistics.
+
+37:26.260 --> 37:27.120
+They used the
+
+37:27.120 --> 37:28.480
+distance statistic,
+
+37:28.480 --> 37:29.800
+which looks for
+
+37:29.800 --> 37:30.880
+unusually short paths
+
+37:30.880 --> 37:32.020
+between specific points,
+
+37:32.380 --> 37:33.260
+and compared it
+
+37:33.260 --> 37:33.720
+against the
+
+37:33.720 --> 37:35.320
+forward-reach statistic,
+
+37:35.560 --> 37:36.220
+which just looks
+
+37:36.220 --> 37:37.320
+at the sheer volume
+
+37:37.320 --> 37:37.940
+of code
+
+37:37.940 --> 37:38.880
+an entry point
+
+37:38.880 --> 37:39.940
+can touch globally.
+
+37:40.440 --> 37:40.860
+Which one won?
+
+37:41.720 --> 37:42.720
+The distance statistic
+
+37:42.720 --> 37:43.920
+successfully detected
+
+37:43.920 --> 37:44.660
+the planted path
+
+37:44.660 --> 37:46.380
+with 85% power.
+
+37:46.740 --> 37:48.180
+It was highly effective
+
+37:48.180 --> 37:49.220
+at isolating the signal.
+
+37:49.680 --> 37:51.520
+And the forward-reach statistic?
+
+37:52.020 --> 37:52.880
+It completely failed.
+
+37:53.360 --> 37:54.880
+It only had a 7.5%
+
+37:54.880 --> 37:56.260
+power to detect the plant.
+
+37:56.260 --> 37:58.360
+Wait, why such a massive failure?
+
+37:58.880 --> 38:00.060
+It seems like if a package
+
+38:00.060 --> 38:00.800
+suddenly reaches
+
+38:00.800 --> 38:01.700
+a sensitive target,
+
+38:01.900 --> 38:02.980
+its forward-reach
+
+38:02.980 --> 38:03.580
+should spike.
+
+38:04.080 --> 38:04.620
+That would be true
+
+38:04.620 --> 38:05.340
+in a sparse network.
+
+38:05.980 --> 38:07.260
+But remember the first test.
+
+38:07.660 --> 38:08.800
+The graph was already
+
+38:08.800 --> 38:09.780
+operating in the
+
+38:09.780 --> 38:10.880
+supercritical regime.
+
+38:11.140 --> 38:11.420
+Oh.
+
+38:11.820 --> 38:12.540
+It was already past
+
+38:12.540 --> 38:13.660
+the connectivity threshold.
+
+38:14.060 --> 38:15.000
+When everything
+
+38:15.000 --> 38:15.920
+is highly connected,
+
+38:16.340 --> 38:17.420
+a global statistic
+
+38:17.420 --> 38:18.840
+like forward-reach
+
+38:18.840 --> 38:19.880
+is useless.
+
+38:20.200 --> 38:21.580
+Because almost every
+
+38:21.580 --> 38:22.180
+starting point
+
+38:22.180 --> 38:22.940
+can reach a huge
+
+38:22.940 --> 38:23.860
+portion of the graph.
+
+38:24.220 --> 38:25.640
+Everything touches everything.
+
+38:25.640 --> 38:26.240
+Exactly.
+
+38:26.760 --> 38:27.380
+The background noise
+
+38:27.380 --> 38:28.120
+is deafening.
+
+38:29.120 --> 38:30.100
+It beautifully proved
+
+38:30.100 --> 38:30.840
+the author's argument.
+
+38:31.540 --> 38:33.100
+Global macroscopic statistics
+
+38:33.100 --> 38:33.800
+are useless
+
+38:33.800 --> 38:35.020
+for finding specific
+
+38:35.020 --> 38:35.880
+hidden paths
+
+38:35.880 --> 38:37.440
+once a network is dense.
+
+38:38.080 --> 38:39.040
+You must use
+
+38:39.040 --> 38:40.660
+path-level statistics.
+
+38:41.200 --> 38:42.180
+Which flows perfectly
+
+38:42.180 --> 38:42.920
+into the final
+
+38:42.920 --> 38:43.720
+synthetic test.
+
+38:44.280 --> 38:44.980
+Minimum cut
+
+38:44.980 --> 38:46.080
+versus the funnel.
+
+38:46.640 --> 38:47.580
+The author planted
+
+38:47.580 --> 38:48.660
+three different routes
+
+38:48.660 --> 38:49.580
+from an entry point
+
+38:49.580 --> 38:50.560
+to a sensitive set.
+
+38:50.900 --> 38:51.660
+But they specifically
+
+38:51.660 --> 38:53.040
+designed it as a funnel.
+
+38:53.040 --> 38:54.560
+All three routes
+
+38:54.560 --> 38:55.720
+pass through a single
+
+38:55.720 --> 38:57.180
+shared hub vertex
+
+38:57.180 --> 38:58.280
+before branching out again.
+
+38:59.080 --> 39:00.020
+They wanted to test
+
+39:00.020 --> 39:01.080
+the edge disjoint
+
+39:01.080 --> 39:02.500
+versus vertex disjoint
+
+39:02.500 --> 39:03.080
+algorithms.
+
+39:03.200 --> 39:03.460
+Right.
+
+39:03.920 --> 39:04.820
+This is the ultimate test
+
+39:04.820 --> 39:05.740
+of the choke point theory.
+
+39:06.200 --> 39:07.000
+When they ran the
+
+39:07.000 --> 39:07.980
+edge disjoint count
+
+39:07.980 --> 39:09.040
+on this funnel plant,
+
+39:09.460 --> 39:10.440
+the algorithm returned
+
+39:10.440 --> 39:11.280
+a value of three.
+
+39:11.660 --> 39:12.900
+It saw three independent
+
+39:12.900 --> 39:13.820
+edges entering
+
+39:13.820 --> 39:14.700
+the sensitive set,
+
+39:14.880 --> 39:15.940
+so it assumed
+
+39:15.940 --> 39:16.700
+there were three
+
+39:16.700 --> 39:17.840
+totally independent paths.
+
+39:18.200 --> 39:19.100
+But that's a dangerous
+
+39:19.100 --> 39:19.580
+illusion.
+
+39:19.580 --> 39:20.820
+If a defender
+
+39:20.820 --> 39:21.560
+believes that,
+
+39:21.940 --> 39:22.560
+they think they have
+
+39:22.560 --> 39:23.220
+to patch three
+
+39:23.220 --> 39:24.200
+separate vulnerabilities.
+
+39:24.800 --> 39:25.680
+But they all pass
+
+39:25.680 --> 39:26.260
+through the hub.
+
+39:26.460 --> 39:26.920
+Exactly.
+
+39:27.360 --> 39:27.960
+And that's why
+
+39:27.960 --> 39:29.200
+the vertex disjoint
+
+39:29.200 --> 39:30.360
+count was the hero.
+
+39:31.220 --> 39:31.920
+It accurately
+
+39:31.920 --> 39:32.720
+returned a value
+
+39:32.720 --> 39:33.240
+of one.
+
+39:33.640 --> 39:34.280
+It recognized
+
+39:34.280 --> 39:35.080
+that mathematically,
+
+39:35.520 --> 39:36.340
+because all routes
+
+39:36.340 --> 39:37.420
+share that single hub,
+
+39:37.860 --> 39:38.580
+there is fundamentally
+
+39:38.580 --> 39:39.980
+only one internally
+
+39:39.980 --> 39:40.720
+disjoint route.
+
+39:40.840 --> 39:41.380
+That's awesome.
+
+39:41.620 --> 39:42.140
+Even better,
+
+39:42.440 --> 39:43.180
+when the algorithm
+
+39:43.180 --> 39:44.220
+generated its list
+
+39:44.220 --> 39:45.240
+of essential vertices,
+
+39:45.900 --> 39:46.880
+that single hub
+
+39:46.880 --> 39:48.020
+was successfully listed
+
+39:48.020 --> 39:49.740
+as a critical choke point
+
+39:49.740 --> 39:51.320
+in 39 out of the 40
+
+39:51.320 --> 39:51.940
+test graphs.
+
+39:52.140 --> 39:53.060
+39 out of 40.
+
+39:53.120 --> 39:54.660
+That is incredible accuracy.
+
+39:55.240 --> 39:56.560
+It proves that the math
+
+39:56.560 --> 39:57.920
+can actually automate
+
+39:57.920 --> 39:58.940
+the discovery of the
+
+39:58.940 --> 40:00.120
+most critical vulnerability
+
+40:00.120 --> 40:02.080
+points in a massive system.
+
+40:02.580 --> 40:03.360
+But of course,
+
+40:03.480 --> 40:04.120
+theory is great,
+
+40:04.400 --> 40:05.920
+and synthetic sandboxes
+
+40:05.920 --> 40:06.740
+are clean and
+
+40:06.740 --> 40:07.700
+mathematically pure.
+
+40:07.880 --> 40:08.220
+Very true.
+
+40:08.540 --> 40:09.340
+What happens when you
+
+40:09.340 --> 40:10.960
+take these pristine
+
+40:10.960 --> 40:12.300
+mathematical tools
+
+40:12.300 --> 40:13.540
+and run them on
+
+40:13.540 --> 40:14.680
+real, messy,
+
+40:15.260 --> 40:15.740
+chaotic,
+
+40:16.440 --> 40:17.420
+human-written code?
+
+40:17.420 --> 40:18.140
+Because humans do
+
+40:18.140 --> 40:18.680
+weird things
+
+40:18.680 --> 40:19.180
+when they code.
+
+40:19.360 --> 40:20.240
+They absolutely do.
+
+40:20.800 --> 40:21.400
+This brings us
+
+40:21.400 --> 40:21.960
+to the climax
+
+40:21.960 --> 40:22.580
+of the paper,
+
+40:23.040 --> 40:24.520
+the Python pilot study.
+
+40:25.220 --> 40:25.780
+The author took
+
+40:25.780 --> 40:26.800
+two highly popular
+
+40:26.800 --> 40:28.260
+real-world Python projects
+
+40:28.260 --> 40:29.420
+to test the methodology
+
+40:29.420 --> 40:30.180
+in the wild.
+
+40:30.360 --> 40:30.640
+Okay.
+
+40:30.780 --> 40:31.200
+What were they?
+
+40:31.400 --> 40:32.440
+The first project
+
+40:32.440 --> 40:33.020
+was built around
+
+40:33.020 --> 40:33.700
+VirtualEnv,
+
+40:33.980 --> 40:35.220
+which is a staple tool
+
+40:35.220 --> 40:36.180
+for Python developers
+
+40:36.180 --> 40:37.200
+for creating
+
+40:37.200 --> 40:38.340
+isolated environments.
+
+40:39.040 --> 40:39.420
+They included
+
+40:39.420 --> 40:40.240
+its dependencies,
+
+40:41.180 --> 40:41.600
+dislib,
+
+40:41.960 --> 40:42.500
+file lock,
+
+40:42.780 --> 40:43.820
+and platform dirs.
+
+40:44.600 --> 40:45.760
+The second project
+
+40:45.760 --> 40:46.400
+centered on
+
+40:46.400 --> 40:47.100
+GitPython,
+
+40:47.100 --> 40:48.460
+with its dependencies
+
+40:48.460 --> 40:50.020
+GitDB and
+
+40:50.020 --> 40:50.820
+SMMF.
+
+40:51.320 --> 40:51.780
+Now, they couldn't
+
+40:51.780 --> 40:52.520
+just look for
+
+40:52.520 --> 40:54.300
+general connectivity.
+
+40:54.520 --> 40:55.380
+They needed a target.
+
+40:55.960 --> 40:57.120
+They defined a very
+
+40:57.120 --> 40:57.720
+specific,
+
+40:58.000 --> 40:59.080
+very dangerous,
+
+40:59.660 --> 41:00.400
+sensitive set.
+
+41:00.880 --> 41:01.480
+They were looking
+
+41:01.480 --> 41:02.440
+for any path
+
+41:02.440 --> 41:03.280
+that could reach
+
+41:03.280 --> 41:03.980
+functions that
+
+41:03.980 --> 41:04.620
+launch external
+
+41:04.620 --> 41:05.140
+processes.
+
+41:05.560 --> 41:06.100
+We are talking
+
+41:06.100 --> 41:06.700
+about things like
+
+41:06.700 --> 41:08.020
+the subprocess module
+
+41:08.020 --> 41:09.400
+or OS.system
+
+41:09.400 --> 41:09.940
+in Python.
+
+41:10.380 --> 41:11.340
+And for context,
+
+41:11.560 --> 41:12.120
+if an attacker
+
+41:12.120 --> 41:12.880
+can reach those
+
+41:12.880 --> 41:14.120
+modules and control
+
+41:14.120 --> 41:14.640
+the input,
+
+41:14.640 --> 41:15.520
+they can
+
+41:15.520 --> 41:16.860
+essentially execute
+
+41:16.860 --> 41:17.660
+arbitrary shell
+
+41:17.660 --> 41:18.260
+commands on your
+
+41:18.260 --> 41:18.620
+computer.
+
+41:19.060 --> 41:19.720
+So total control.
+
+41:20.060 --> 41:20.360
+Basically.
+
+41:20.760 --> 41:21.420
+They can bypass
+
+41:21.420 --> 41:22.240
+Python entirely
+
+41:22.240 --> 41:23.100
+and talk directly
+
+41:23.100 --> 41:23.900
+to your operating
+
+41:23.900 --> 41:24.320
+system.
+
+41:24.800 --> 41:25.400
+It's game over.
+
+41:25.720 --> 41:26.260
+It's the highest
+
+41:26.260 --> 41:26.920
+stakes target
+
+41:26.920 --> 41:27.380
+possible.
+
+41:28.140 --> 41:29.220
+Now, to analyze
+
+41:29.220 --> 41:30.200
+this, we have to
+
+41:30.200 --> 41:31.140
+talk about how the
+
+41:31.140 --> 41:31.980
+author actually
+
+41:31.980 --> 41:33.120
+extracted the map
+
+41:33.120 --> 41:34.020
+from the Python code.
+
+41:34.020 --> 41:35.440
+They built an
+
+41:35.440 --> 41:36.220
+abstract syntax
+
+41:36.220 --> 41:37.220
+tree, or AST,
+
+41:37.880 --> 41:38.520
+parsing the code
+
+41:38.520 --> 41:39.080
+to find the
+
+41:39.080 --> 41:39.940
+function definitions
+
+41:39.940 --> 41:40.600
+and the calls.
+
+41:41.460 --> 41:42.840
+But Python is a
+
+41:42.840 --> 41:43.900
+notoriously dynamic
+
+41:43.900 --> 41:44.820
+language, which
+
+41:44.820 --> 41:45.580
+makes building an
+
+41:45.580 --> 41:46.820
+accurate static map
+
+41:46.820 --> 41:48.000
+incredibly difficult.
+
+41:48.320 --> 41:49.640
+So the author built
+
+41:49.640 --> 41:50.620
+two different versions
+
+41:50.620 --> 41:51.260
+of the graph to
+
+41:51.260 --> 41:51.580
+compare.
+
+41:52.440 --> 41:53.520
+First, they built
+
+41:53.520 --> 41:54.380
+the strict graph.
+
+41:54.600 --> 41:55.380
+The strict graph
+
+41:55.380 --> 41:56.760
+is highly conservative.
+
+41:57.360 --> 41:58.180
+It only kept
+
+41:58.180 --> 41:59.500
+static, explicitly
+
+41:59.500 --> 42:00.420
+resolved calls.
+
+42:01.040 --> 42:02.300
+If function A
+
+42:02.300 --> 42:03.500
+clearly and directly
+
+42:03.500 --> 42:04.500
+calls function B
+
+42:04.500 --> 42:05.720
+by its exact,
+
+42:06.060 --> 42:07.380
+unique name, in a
+
+42:07.380 --> 42:08.160
+way the parser can
+
+42:08.160 --> 42:08.840
+guarantee without
+
+42:08.840 --> 42:09.600
+actually running the
+
+42:09.600 --> 42:10.960
+code, it gets an
+
+42:10.960 --> 42:11.180
+edge.
+
+42:11.500 --> 42:12.420
+What if it's vague?
+
+42:12.920 --> 42:13.760
+If there was any
+
+42:13.760 --> 42:15.220
+ambiguity, like
+
+42:15.220 --> 42:17.400
+dynamic dispatch, or
+
+42:17.400 --> 42:18.600
+calling a method
+
+42:18.600 --> 42:19.560
+on a variable whose
+
+42:19.560 --> 42:20.400
+type is unknown
+
+42:20.400 --> 42:21.960
+until runtime, the
+
+42:21.960 --> 42:23.020
+strict graph ignored
+
+42:23.020 --> 42:23.560
+it completely.
+
+42:23.860 --> 42:24.620
+And what were the
+
+42:24.620 --> 42:25.400
+findings on this
+
+42:25.400 --> 42:26.840
+highly conservative
+
+42:26.840 --> 42:28.240
+strict graph?
+
+42:28.660 --> 42:29.520
+Well, structurally,
+
+42:29.740 --> 42:30.480
+the shadow graphs
+
+42:30.480 --> 42:31.000
+were tiny.
+
+42:31.940 --> 42:32.540
+For the virtual
+
+42:32.540 --> 42:34.040
+N project, the
+
+42:34.040 --> 42:34.820
+shadow graph had a
+
+42:34.820 --> 42:35.820
+K-ratio of only
+
+42:35.820 --> 42:37.500
+2.88 and a
+
+42:37.500 --> 42:38.600
+directed K of 0.
+
+42:38.940 --> 42:40.040
+So, pretty safe
+
+42:40.040 --> 42:40.320
+looking.
+
+42:40.600 --> 42:41.020
+Right.
+
+42:41.320 --> 42:42.280
+So the macroscopic
+
+42:42.280 --> 42:43.840
+statistics had nothing
+
+42:43.840 --> 42:44.700
+interesting to say.
+
+42:44.920 --> 42:45.700
+It looked like a
+
+42:45.700 --> 42:47.160
+fairly safe, sparse
+
+42:47.160 --> 42:47.560
+network.
+
+42:48.100 --> 42:49.480
+But, when they ran
+
+42:49.480 --> 42:50.080
+the path-level
+
+42:50.080 --> 42:50.980
+witness search on the
+
+42:50.980 --> 42:52.940
+full graph, they
+
+42:52.940 --> 42:53.440
+found gold.
+
+42:53.540 --> 42:53.780
+Oh?
+
+42:54.320 --> 42:56.260
+Out of 525 external
+
+42:56.260 --> 42:57.620
+entry points in the
+
+42:57.620 --> 42:58.580
+distlib dependency,
+
+42:58.580 --> 43:00.600
+exactly six of them
+
+43:00.600 --> 43:01.900
+had a confirmed,
+
+43:02.160 --> 43:03.060
+structurally sound
+
+43:03.060 --> 43:04.600
+witness path straight
+
+43:04.600 --> 43:05.540
+to a process
+
+43:05.540 --> 43:05.960
+launcher.
+
+43:06.560 --> 43:08.320
+Six out of 525.
+
+43:08.800 --> 43:09.960
+That is incredibly
+
+43:09.960 --> 43:10.860
+precise targeting.
+
+43:11.640 --> 43:12.720
+But, we have to
+
+43:12.720 --> 43:13.880
+remember the massive
+
+43:13.880 --> 43:14.820
+caveat from earlier.
+
+43:15.020 --> 43:15.840
+The candidate path
+
+43:15.840 --> 43:16.220
+caveat.
+
+43:16.780 --> 43:17.120
+Yes.
+
+43:17.680 --> 43:18.640
+The paper digs into
+
+43:18.640 --> 43:20.060
+the nuanced, real-world
+
+43:20.060 --> 43:21.160
+reality of these six
+
+43:21.160 --> 43:22.580
+paths, and it's a
+
+43:22.580 --> 43:23.640
+perfect example of
+
+43:23.640 --> 43:24.800
+graph path versus
+
+43:24.800 --> 43:25.980
+executable path.
+
+43:25.980 --> 43:28.060
+For example, one of
+
+43:28.060 --> 43:28.940
+the paths went from
+
+43:28.940 --> 43:29.800
+an entry function
+
+43:29.800 --> 43:31.300
+called upload file,
+
+43:31.700 --> 43:32.640
+all the way down to
+
+43:32.640 --> 43:33.440
+a function called
+
+43:33.440 --> 43:35.220
+signed file, which
+
+43:35.220 --> 43:35.940
+triggered the
+
+43:35.940 --> 43:36.460
+subprocess.
+
+43:37.100 --> 43:38.260
+The graph showed a
+
+43:38.260 --> 43:39.180
+direct, unbroken
+
+43:39.180 --> 43:39.560
+line.
+
+43:40.060 --> 43:40.740
+But, when you look at
+
+43:40.740 --> 43:41.440
+the actual Python
+
+43:41.440 --> 43:43.040
+source code, you see
+
+43:43.040 --> 43:43.920
+the steel gate we
+
+43:43.920 --> 43:44.680
+talked about earlier.
+
+43:45.240 --> 43:46.080
+That call to
+
+43:46.080 --> 43:47.480
+signed file is
+
+43:47.480 --> 43:48.460
+buried inside an
+
+43:48.460 --> 43:48.980
+if statement.
+
+43:49.300 --> 43:49.540
+Right.
+
+43:49.900 --> 43:50.960
+The branch requires a
+
+43:50.960 --> 43:52.400
+specific signer
+
+43:52.400 --> 43:53.460
+argument to be passed
+
+43:53.460 --> 43:54.560
+into upload file.
+
+43:54.560 --> 43:56.240
+Even further, it
+
+43:56.240 --> 43:57.140
+requires an external
+
+43:57.140 --> 43:57.940
+signing program to
+
+43:57.940 --> 43:58.920
+actually be installed
+
+43:58.920 --> 43:59.860
+and available on the
+
+43:59.860 --> 44:00.220
+machine.
+
+44:00.660 --> 44:00.820
+Right.
+
+44:01.140 --> 44:02.040
+So, it perfectly
+
+44:02.040 --> 44:02.960
+illustrates the
+
+44:02.960 --> 44:03.480
+concept.
+
+44:03.740 --> 44:04.740
+A structural
+
+44:04.740 --> 44:06.400
+vulnerability exists,
+
+44:06.760 --> 44:07.420
+the code is wired
+
+44:07.420 --> 44:08.780
+together, but it
+
+44:08.780 --> 44:09.760
+requires highly
+
+44:09.760 --> 44:10.880
+specific runtime
+
+44:10.880 --> 44:11.800
+conditions to
+
+44:11.800 --> 44:12.500
+actually be
+
+44:12.500 --> 44:12.940
+exploited.
+
+44:13.300 --> 44:14.260
+The graph tells the
+
+44:14.260 --> 44:15.140
+security researcher
+
+44:15.140 --> 44:15.960
+exactly where to
+
+44:15.960 --> 44:16.800
+look, but a human
+
+44:16.800 --> 44:17.960
+still has to verify
+
+44:17.960 --> 44:18.760
+if the door can
+
+44:18.760 --> 44:20.320
+actually be unlocked
+
+44:20.320 --> 44:21.260
+by an attacker.
+
+44:22.020 --> 44:22.440
+Exactly.
+
+44:22.440 --> 44:23.960
+So, that was the
+
+44:23.960 --> 44:24.700
+strict graph.
+
+44:24.920 --> 44:25.580
+It found six
+
+44:25.580 --> 44:26.780
+highly specific but
+
+44:26.780 --> 44:28.240
+conditional paths.
+
+44:29.000 --> 44:29.960
+But then, the author
+
+44:29.960 --> 44:30.820
+introduces the
+
+44:30.820 --> 44:32.320
+matched graph.
+
+44:33.100 --> 44:33.720
+And the results of
+
+44:33.720 --> 44:34.780
+this test completely
+
+44:34.780 --> 44:35.440
+inverted my
+
+44:35.440 --> 44:35.980
+expectations.
+
+44:36.320 --> 44:37.580
+So, what does this
+
+44:37.580 --> 44:37.900
+all mean?
+
+44:38.080 --> 44:38.980
+Let's get into this,
+
+44:39.200 --> 44:40.080
+because this is where
+
+44:40.080 --> 44:41.220
+the reality of dynamic
+
+44:41.220 --> 44:42.300
+languages really
+
+44:42.300 --> 44:43.140
+rears its head.
+
+44:44.380 --> 44:45.260
+What did the
+
+44:45.260 --> 44:46.280
+matched graph do
+
+44:46.280 --> 44:46.880
+differently?
+
+44:47.320 --> 44:48.600
+The matched graph
+
+44:48.600 --> 44:49.540
+attempts to solve
+
+44:49.540 --> 44:50.420
+the problem of
+
+44:50.420 --> 44:51.880
+unresolved calls that
+
+44:51.880 --> 44:52.720
+the strict graph
+
+44:52.720 --> 44:53.060
+ignored.
+
+44:53.540 --> 44:54.700
+In Python, you
+
+44:54.700 --> 44:55.760
+often see code that
+
+44:55.760 --> 44:57.100
+just says, call the
+
+44:57.100 --> 44:58.080
+update method on
+
+44:58.080 --> 44:58.640
+this object.
+
+44:59.220 --> 45:00.200
+But, statically,
+
+45:00.440 --> 45:01.340
+without running the
+
+45:01.340 --> 45:02.280
+code, the parser
+
+45:02.280 --> 45:02.880
+doesn't know what
+
+45:02.880 --> 45:03.800
+class that object
+
+45:03.800 --> 45:04.380
+belongs to.
+
+45:04.580 --> 45:05.000
+Right, it could be
+
+45:05.000 --> 45:05.300
+anything.
+
+45:06.300 --> 45:07.300
+Is it a database
+
+45:07.300 --> 45:08.540
+object, a dictionary,
+
+45:09.000 --> 45:09.820
+a custom class?
+
+45:10.300 --> 45:11.400
+The strict graph
+
+45:11.400 --> 45:12.400
+dropped those.
+
+45:13.060 --> 45:14.120
+The matched graph,
+
+45:14.200 --> 45:15.160
+however, tried a
+
+45:15.160 --> 45:16.120
+heuristic approach.
+
+45:16.380 --> 45:17.200
+It linked them by
+
+45:17.200 --> 45:17.580
+name.
+
+45:17.640 --> 45:18.100
+Oh, boy.
+
+45:18.340 --> 45:19.200
+If it saw an
+
+45:19.200 --> 45:20.340
+unresolved call to a
+
+45:20.340 --> 45:20.960
+method named
+
+45:20.960 --> 45:22.700
+update, it boldly
+
+45:22.700 --> 45:23.360
+drew an edge to
+
+45:23.360 --> 45:23.980
+every single
+
+45:23.980 --> 45:24.720
+analyzed method
+
+45:24.720 --> 45:25.200
+named update
+
+45:25.200 --> 45:25.960
+across the entire
+
+45:25.960 --> 45:26.500
+project.
+
+45:27.140 --> 45:27.780
+That sounds like a
+
+45:27.780 --> 45:29.180
+recipe for absolute
+
+45:29.180 --> 45:29.920
+chaos.
+
+45:30.440 --> 45:31.220
+Update is probably
+
+45:31.220 --> 45:32.000
+one of the most
+
+45:32.000 --> 45:33.460
+common programming
+
+45:33.460 --> 45:34.580
+verbs in existence.
+
+45:35.000 --> 45:36.060
+It was an explosion.
+
+45:36.480 --> 45:37.520
+Suddenly, the graph
+
+45:37.520 --> 45:38.260
+ballooned.
+
+45:38.580 --> 45:39.740
+The K-ratio shot up
+
+45:39.740 --> 45:41.260
+to 11.87,
+
+45:41.640 --> 45:43.100
+massively supercritical.
+
+45:43.300 --> 45:43.520
+Wow.
+
+45:43.520 --> 45:44.800
+And instead of six
+
+45:44.800 --> 45:45.800
+entry points having a
+
+45:45.800 --> 45:46.740
+witness path to a
+
+45:46.740 --> 45:50.020
+launcher, 207 entries
+
+45:50.020 --> 45:51.180
+suddenly had witnesses.
+
+45:51.400 --> 45:52.080
+Wait, really?
+
+45:52.300 --> 45:52.480
+Yeah.
+
+45:53.040 --> 45:53.560
+207?
+
+45:53.560 --> 45:54.760
+That's almost half the
+
+45:54.760 --> 45:55.520
+entry points in the
+
+45:55.520 --> 45:55.920
+library.
+
+45:56.160 --> 45:57.380
+Was the software really
+
+45:57.380 --> 45:58.080
+that fundamentally
+
+45:58.080 --> 45:58.460
+broken?
+
+45:58.760 --> 45:59.920
+No, and that's the
+
+45:59.920 --> 46:00.620
+crucial lesson.
+
+46:00.880 --> 46:01.140
+Okay.
+
+46:01.820 --> 46:02.840
+The author reveals a
+
+46:02.840 --> 46:04.380
+glaring false positive to
+
+46:04.380 --> 46:05.740
+demonstrate exactly why
+
+46:05.740 --> 46:06.920
+this explosion happened.
+
+46:07.260 --> 46:08.140
+Okay, let's hear it.
+
+46:08.140 --> 46:09.300
+In the dependency
+
+46:09.300 --> 46:11.540
+git-db, there was a
+
+46:11.540 --> 46:13.260
+basic write method that
+
+46:13.260 --> 46:14.380
+called an update method
+
+46:14.380 --> 46:15.540
+on a local, harmless
+
+46:15.540 --> 46:16.400
+hash object.
+
+46:16.900 --> 46:17.720
+Because of the
+
+46:17.720 --> 46:18.720
+aggressive rules of
+
+46:18.720 --> 46:20.660
+the matched graph, that
+
+46:20.660 --> 46:21.780
+call got mistakenly
+
+46:21.780 --> 46:22.760
+linked to a completely
+
+46:22.760 --> 46:24.120
+unrelated, highly
+
+46:24.120 --> 46:25.560
+sensitive update method
+
+46:25.560 --> 46:26.880
+in the main git-python
+
+46:26.880 --> 46:28.440
+application, simply
+
+46:28.440 --> 46:29.280
+because they shared the
+
+46:29.280 --> 46:30.620
+exact same English word
+
+46:30.620 --> 46:31.200
+as a name.
+
+46:31.460 --> 46:32.020
+It was a complete
+
+46:32.020 --> 46:32.840
+hallucination.
+
+46:33.320 --> 46:33.940
+A structural
+
+46:33.940 --> 46:35.300
+hallucination caused by
+
+46:35.300 --> 46:36.020
+the mapmaker's
+
+46:36.020 --> 46:36.380
+assumptions.
+
+46:36.380 --> 46:38.440
+That is such a vital
+
+46:38.440 --> 46:39.260
+insight for anyone
+
+46:39.260 --> 46:40.040
+building or buying
+
+46:40.040 --> 46:40.780
+security tools.
+
+46:40.920 --> 46:41.500
+It shows the
+
+46:41.500 --> 46:42.760
+incredible, almost
+
+46:42.760 --> 46:43.800
+dangerous sensitivity
+
+46:43.800 --> 46:45.160
+of structural screens
+
+46:45.160 --> 46:46.140
+to how you extract the
+
+46:46.140 --> 46:46.740
+data in the first
+
+46:46.740 --> 46:47.060
+place.
+
+46:47.340 --> 46:47.920
+It really does.
+
+46:48.440 --> 46:49.240
+If you use a strict
+
+46:49.240 --> 46:49.900
+graph, you have
+
+46:49.900 --> 46:51.120
+terrifying blind spots.
+
+46:51.260 --> 46:52.020
+You might miss a
+
+46:52.020 --> 46:53.280
+massive real attack
+
+46:53.280 --> 46:54.100
+path simply because
+
+46:54.100 --> 46:54.780
+the code was too
+
+46:54.780 --> 46:55.660
+dynamic for your
+
+46:55.660 --> 46:56.460
+parser to understand
+
+46:56.460 --> 46:56.980
+statically.
+
+46:57.400 --> 46:58.440
+But if you use a
+
+46:58.440 --> 46:59.700
+matched graph to try
+
+46:59.700 --> 47:00.540
+and cover those blind
+
+47:00.540 --> 47:02.100
+spots by guessing, you
+
+47:02.100 --> 47:03.000
+introduce massive
+
+47:03.000 --> 47:03.660
+hallucinations.
+
+47:03.800 --> 47:04.420
+You connect things that
+
+47:04.420 --> 47:05.200
+have nothing to do
+
+47:05.200 --> 47:06.140
+with each other, creating
+
+47:06.140 --> 47:07.780
+terrifying, but entirely
+
+47:07.780 --> 47:09.080
+fake vulnerability maps
+
+47:09.080 --> 47:10.220
+that waste everyone's
+
+47:10.220 --> 47:10.440
+time.
+
+47:10.440 --> 47:11.740
+It proves mathematically
+
+47:11.740 --> 47:12.680
+what many developers
+
+47:12.680 --> 47:13.620
+know intuitively.
+
+47:14.020 --> 47:15.540
+Negative findings, a
+
+47:15.540 --> 47:16.580
+scanner saying, we
+
+47:16.580 --> 47:17.120
+found zero
+
+47:17.120 --> 47:18.880
+vulnerabilities, only
+
+47:18.880 --> 47:20.140
+hold true within the
+
+47:20.140 --> 47:21.500
+specific abstraction you
+
+47:21.500 --> 47:21.860
+chose.
+
+47:22.520 --> 47:23.400
+If you use this strict
+
+47:23.400 --> 47:24.840
+graph and found zero
+
+47:24.840 --> 47:26.200
+paths, you aren't
+
+47:26.200 --> 47:27.060
+perfectly safe.
+
+47:27.540 --> 47:28.420
+You are only safe
+
+47:28.420 --> 47:29.120
+against statically
+
+47:29.120 --> 47:30.220
+resolvable attacks.
+
+47:31.040 --> 47:32.300
+The unresolved calls
+
+47:32.300 --> 47:33.740
+remain a vast, dark
+
+47:33.740 --> 47:34.900
+matter in your software
+
+47:34.900 --> 47:35.400
+universe.
+
+47:35.840 --> 47:37.040
+So as we bring this
+
+47:37.040 --> 47:38.100
+deep dive to a close,
+
+47:38.200 --> 47:39.240
+let's quickly recap the
+
+47:39.240 --> 47:39.460
+journey.
+
+47:39.840 --> 47:40.920
+We started by defining
+
+47:40.920 --> 47:42.060
+our maps, the
+
+47:42.060 --> 47:43.220
+microscopic full graph
+
+47:43.220 --> 47:44.380
+and the macroscopic
+
+47:44.380 --> 47:45.300
+boundary crossing
+
+47:45.300 --> 47:46.140
+shadow graph.
+
+47:46.580 --> 47:47.520
+We explored the
+
+47:47.520 --> 47:48.400
+tipping points of
+
+47:48.400 --> 47:49.380
+network thresholds,
+
+47:49.480 --> 47:50.380
+realizing that
+
+47:50.380 --> 47:51.380
+attackers don't need a
+
+47:51.380 --> 47:52.220
+strongly connected
+
+47:52.220 --> 47:52.860
+whirlpool.
+
+47:53.200 --> 47:54.140
+They just need a
+
+47:54.140 --> 47:54.960
+single drain.
+
+47:55.360 --> 47:56.360
+We learned how to
+
+47:56.360 --> 47:57.120
+build a mathematically
+
+47:57.120 --> 47:58.400
+rigorous control group
+
+47:58.400 --> 47:59.520
+using the pivot
+
+47:59.520 --> 48:00.760
+construction, like a
+
+48:00.760 --> 48:01.760
+standardized deck
+
+48:01.760 --> 48:02.920
+shuffle, to ensure
+
+48:02.920 --> 48:03.800
+our comparisons are
+
+48:03.800 --> 48:04.500
+actually valid.
+
+48:05.140 --> 48:05.940
+We also took that
+
+48:05.940 --> 48:07.340
+fascinating detour into
+
+48:07.340 --> 48:09.240
+materials science, using
+
+48:09.240 --> 48:09.980
+the spanning
+
+48:09.980 --> 48:11.320
+conductivity of 3D
+
+48:11.320 --> 48:12.900
+porous batteries to
+
+48:12.900 --> 48:13.480
+understand the
+
+48:13.480 --> 48:14.100
+difference between
+
+48:14.100 --> 48:15.080
+simply finding a
+
+48:15.080 --> 48:16.380
+single fragile attack
+
+48:16.380 --> 48:18.180
+path versus calculating
+
+48:18.180 --> 48:20.000
+the high conductivity of
+
+48:20.000 --> 48:20.860
+multiple robust
+
+48:20.860 --> 48:21.820
+independent routes.
+
+48:22.320 --> 48:22.440
+Right.
+
+48:23.020 --> 48:24.120
+We saw the math prove
+
+48:24.120 --> 48:25.100
+itself in a synthetic
+
+48:25.100 --> 48:26.540
+sandbox, successfully
+
+48:26.540 --> 48:27.800
+detecting hidden paths
+
+48:27.800 --> 48:28.960
+and isolating essential
+
+48:28.960 --> 48:30.440
+choke points, even when the
+
+48:30.440 --> 48:31.480
+graph was super critical.
+
+48:31.480 --> 48:33.260
+And finally, we threw it
+
+48:33.260 --> 48:34.360
+all against the messy
+
+48:34.360 --> 48:35.340
+reality of actual
+
+48:35.340 --> 48:37.140
+Python code, discovering
+
+48:37.140 --> 48:38.120
+how the way we build
+
+48:38.120 --> 48:39.000
+our map can either
+
+48:39.000 --> 48:40.320
+leave us with blind
+
+48:40.320 --> 48:41.980
+spots or overwhelm us
+
+48:41.980 --> 48:43.400
+with hallucinated name
+
+48:43.400 --> 48:43.840
+collisions.
+
+48:44.280 --> 48:45.440
+Which leads us to the
+
+48:45.440 --> 48:46.340
+final thought we want to
+
+48:46.340 --> 48:47.100
+leave you with today.
+
+48:47.560 --> 48:48.320
+If you think about the
+
+48:48.320 --> 48:49.200
+implications of that
+
+48:49.200 --> 48:50.980
+final Python pilot
+
+48:50.980 --> 48:52.540
+study, it raises a
+
+48:52.540 --> 48:53.680
+profound structural
+
+48:53.680 --> 48:54.740
+question for the future
+
+48:54.740 --> 48:55.680
+of software security.
+
+48:56.320 --> 48:57.900
+A massive, growing
+
+48:57.900 --> 48:58.740
+portion of modern
+
+48:58.740 --> 49:00.160
+software relies heavily on
+
+49:00.160 --> 49:01.680
+dynamic, runtime
+
+49:01.680 --> 49:02.220
+behavior.
+
+49:02.500 --> 49:04.040
+Code that decides what
+
+49:04.040 --> 49:05.060
+it's going to do, what
+
+49:05.060 --> 49:06.560
+types of handling, and
+
+49:06.560 --> 49:07.840
+what methods it's calling
+
+49:07.840 --> 49:09.300
+at the exact millisecond
+
+49:09.300 --> 49:10.060
+it executes.
+
+49:10.740 --> 49:10.840
+Yeah.
+
+49:11.560 --> 49:13.120
+As we saw, this behavior
+
+49:13.120 --> 49:14.620
+cannot be easily statically
+
+49:14.620 --> 49:15.720
+resolved without creating
+
+49:15.720 --> 49:16.640
+those massive name
+
+49:16.640 --> 49:17.000
+collisions.
+
+49:17.580 --> 49:18.980
+So, the question we have to
+
+49:18.980 --> 49:20.040
+ask ourselves is this.
+
+49:20.860 --> 49:22.340
+Are our current maps of
+
+49:22.340 --> 49:23.960
+the software supply chain
+
+49:23.960 --> 49:25.080
+fundamentally incomplete?
+
+49:25.880 --> 49:27.420
+Are we deploying all of our
+
+49:27.420 --> 49:28.740
+security resources trying to
+
+49:28.740 --> 49:30.740
+map a static landscape when
+
+49:30.740 --> 49:32.100
+in reality, the most
+
+49:32.100 --> 49:33.140
+dangerous roads only
+
+49:33.140 --> 49:34.200
+appear the moment the
+
+49:34.200 --> 49:35.340
+attacker starts driving on
+
+49:35.340 --> 49:35.480
+them?
+
+49:36.080 --> 49:37.120
+It's a heavy thought to
+
+49:37.120 --> 49:38.080
+mull over next time you
+
+49:38.080 --> 49:39.980
+type NPM install or PIP
+
+49:39.980 --> 49:41.400
+install and watch hundreds
+
+49:41.400 --> 49:42.320
+of unknown packages
+
+49:42.320 --> 49:43.200
+download into your
+
+49:43.200 --> 49:43.640
+project.
+
+49:44.000 --> 49:45.060
+Thank you for joining us on
+
+49:45.060 --> 49:46.040
+this deep dive into the
+
+49:46.040 --> 49:47.140
+hidden architecture of the
+
+49:47.140 --> 49:48.920
+software we rely on every
+
+49:48.920 --> 49:49.420
+single day.
+
+49:49.920 --> 49:51.160
+Keep questioning your maps.
+

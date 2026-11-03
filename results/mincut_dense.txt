@@ -1,0 +1,46 @@
+graph 0 done
+graph 1 done
+graph 2 done
+graph 3 done
+graph 4 done
+graph 5 done
+graph 6 done
+graph 7 done
+graph 8 done
+graph 9 done
+graph 10 done
+graph 11 done
+graph 12 done
+graph 13 done
+graph 14 done
+graph 15 done
+graph 16 done
+graph 17 done
+graph 18 done
+graph 19 done
+graph 20 done
+graph 21 done
+graph 22 done
+graph 23 done
+graph 24 done
+graph 25 done
+graph 26 done
+graph 27 done
+graph 28 done
+graph 29 done
+graph 30 done
+graph 31 done
+graph 32 done
+graph 33 done
+graph 34 done
+graph 35 done
+graph 36 done
+graph 37 done
+graph 38 done
+graph 39 done
+narrow observed min-cut counts {1: 4, 2: 7, 3: 11, 4: 9, 5: 6, 6: 3}
+wide observed min-cut counts {3: 7, 4: 8, 5: 11, 6: 9, 7: 4, 10: 1}
+case  trials  distance_reject  mincut_reject  mean_obs_mincut  mean_null_median_mincut
+unplanted   320      0.041          0.013           2.08             2.08
+narrow       40      0.150          0.000           3.38             2.58
+wide         40      0.025          0.150           5.00             3.75

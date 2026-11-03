@@ -1,0 +1,1557 @@
+You know, usually when you picture the architecture of the digital world, like the software running your bank, your car, your phone, there is this comforting expectation of precision.
+Right. Yeah. You want it to be exact.
+Exactly. It feels like it should operate like structural engineering.
+I mean, if you look at a blueprint of a skyscraper, you can trace exactly how the weight of the roof transfers, you know, down the steel columns into the foundation and finally into the bedrock.
+It's visible. Yeah. It's documented.
+Yeah. And above all, it's a closed system.
+Right. It feels totally deterministic. I mean, the steel beam is either rated for the load or it isn't.
+And the engineer knows exactly where every single beam came from.
+But then you step into the actual reality of modern software development, specifically, and this is what we're getting into today, the world of software dependencies.
+And suddenly that pristine blueprint is completely illegible.
+Oh, it's a mess.
+It really is. You aren't just building with your own steel beams anymore.
+You are automatically importing thousands of beams overnight from, like, total strangers all over the world, trusting that they are solid metal and not, say, hollow plastic filled with termites.
+Which is a terrifying thought.
+It is. We are looking at a landscape that is incredibly murky.
+And if you are joining us today, it's because you want to understand these complex, unseen systems running our digital lives.
+And you want to do it without getting buried in impenetrable computer science jargon.
+Yeah, we're going to keep it grounded.
+Exactly.
+So today we are taking a deep dive into a piece of independent research by Flyxion.
+It's titled, Percolation Screening on the Cross-Boundary Shadow Graph.
+Quite a title.
+I know, right?
+But our mission for this deep dive is actually pretty clear.
+We are going to explore how advanced network theory and complex mathematics are being used to map the hidden vulnerabilities in software dependencies.
+And we are tracking how a single malicious command, just buried deep in a library you didn't even know you downloaded, might find a secret tunnel straight to your most sensitive data.
+Yeah, and the central tension here is how this paper takes these highly abstract mathematical concepts, like percolation theory, which traditionally I think studies how liquids flow through porous materials, right?
+Right, exactly.
+And the evolution of random graphs.
+It takes those and applies them to a very urgent practical question.
+Which is?
+How structurally vulnerable is our code really?
+It bridges pure mathematics and real-world cybersecurity, but it does so by forcing us to question how we even define a map of our software in the first place.
+Okay, let's start right there with the map.
+Because before we can even begin to find a vulnerability, we need to map the territory.
+But the source material immediately points out that a single map just isn't enough.
+No, it's really not.
+To understand what's happening, we actually need to look at two completely different interpretations of the system.
+Yeah, the foundation of this entire analysis rests on distinguishing between two distinct models of the software ecosystem.
+The baseline model is what the author calls the full graph, which is denoted mathematically as G.
+Okay.
+So think of a graph in the mathematical sense.
+You have vertices, which are dots, and edges, which are the lines connecting them.
+In the full graph, the vertices are the software symbols.
+By symbols, you mean?
+The individual functions, the classes, the specific variables.
+The actual microscopic building blocks of the code.
+So if I write a function called calculateTax, that function is just one dot on the graph.
+Precisely.
+And the edges, the lines connecting the dots, represent the functional relationships between them.
+Right.
+So if your calculateTax function calls another function named getTaxRate, an edge is drawn from the first to the second.
+This applies to memory references, shared types, inheritance, all of it.
+Got it.
+So the full graph is basically the exhaustive, microscopic picture of every single relationship in the software.
+Yes.
+It maps the internal logic inside a single package of code, and it maps the external calls between different packages.
+Okay, let's unpack this, because that brings us to the second map.
+If the full graph is the complete picture, we then have what the paper calls the shadow graph, or G shadow.
+Right.
+Let's use an analogy here.
+Imagine the full graph is a map of an entire country.
+It shows every single interstate highway, but it also maps every local street, every tiny alleyway, every dirt road, and every private driveway.
+It is overwhelmingly detailed.
+Yeah, exactly.
+The shadow graph takes that massive map and applies a huge filter to it.
+It completely erases all the local roads.
+It only shows you the highways that cross state lines.
+That's a really good way to visualize it.
+In the language of the paper, the shadow graph only retains edges that cross a package boundary.
+So internal stuff is just gone.
+Exactly.
+If a function calls another function within the exact same software package, say two internal helper functions talking to each other, that line is just deleted.
+Okay.
+You only see the connections jumping from one distinct package to another.
+You strip away the internal logic of the individual components to look purely at how the different components interact at a macro level.
+Which sounds great for simplifying things, but the text actually highlights a massive pitfall here.
+If you are a developer or a security researcher trying to secure a system, you cannot use the shadow graph to actually search for propagation paths.
+No, you really can't.
+You cannot use it to trace how a real attack might move, which honestly feels totally backwards to me.
+If it shows the connections between packages, wouldn't that be exactly what you want to track a supply chain attack?
+I mean, the attack comes from outside, right?
+The attack originates outside, yes, but its route is highly dependent on the internal roads you just erased.
+Oh.
+Yeah, the source provides this really devastating example of why searching for paths on the shadow graph fundamentally fails.
+Imagine a malicious dependency calls a public function located inside package A.
+Okay.
+Tracking.
+Now, that public function in package A doesn't do the sensitive work itself.
+It turns around and calls an internal helper function, which is also located inside package A.
+Right, on a local road.
+Exactly.
+Finally, that internal helper function reaches out and invokes a highly sensitive operation, like, say, deleting a file in a completely different package, package B.
+Okay.
+Okay.
+So the path goes from the malicious source, it goes into public A, and then it goes through internal A and out to sensitive B.
+Right.
+Okay.
+Now, look at that through the lens of the full graph.
+You see that continuous path perfectly.
+Every step is drawn.
+Right, because all the local roads are there.
+Yes.
+Okay.
+Yeah.
+But remember the rule of the shadow graph.
+It deletes all internal edges.
+So that vital link between the public function in package A and the internal helper in package A is completely erased from the map.
+Ugh.
+Oh.
+Oh, wow.
+So in the shadow graph, you'll see a line coming into package A from the attacker, right?
+And a totally separate line leaving package A, going to the sensitive file deleter, but they literally don't connect.
+Exactly.
+The appear as disconnected endpoints.
+The path is broken on the map, even though it functions perfectly in the real compiled software.
+That's wild.
+The author is very firm about this, too.
+Failing to find a threat in the shadow graph is not a sound negative test.
+Just because the shadow graph shows no complete root doesn't mean you are safe.
+Well, I have to push back here, then, because if filtering out the internal edges actively breaks the attack paths and hides the vulnerabilities, why on earth would we even bother building the shadow graph?
+That's a fair question.
+It sounds like we're just deliberately breaking our own map.
+Why not just use the full graph all the time?
+Because the full graph is computationally overwhelming and often way too noisy to understand the systemic risk.
+The shadow graph isn't meant for finding a specific attacker's path.
+Its job is purely macroscopic.
+Macroscopic.
+Like, big picture.
+Right.
+It is designed to measure the structural exposure of the entire system.
+It answers a completely different question.
+How much boundary crossing is happening overall?
+Oh, I see.
+Is your software architecture highly modular, where packages mind their own business?
+Or is it a tangled mess, where every package is constantly whispering to every other package?
+Gotcha.
+The shadow graph gives you the big picture of your system's porosity.
+But the paper concludes that when you shift from assessing general risk to doing actual weakness searches, meaning looking for specific actionable attack routes, you have to revert to the full graph, where every internal road is intact.
+Okay, that makes sense.
+It's like the difference between looking at climate data to see if you live in a hurricane zone versus looking at your house's specific blueprints to see if the roof will cave in.
+Exactly.
+You need the macro view for the threat landscape and the micro view to actually patch the hole.
+So, assuming we have these maps, we need to know how interconnected they really are.
+Are we looking at a software ecosystem that is basically a set of isolated islands?
+Or are we looking at one massive, globally connected supercontinent where a vulnerability in one tiny package could compromise everything?
+And to figure that out, we have to look at how things spread, which is where the paper introduces the Erdos-Renny evolution of random graphs.
+Right.
+To give some context, Paul Erdos and Alfred Drenny were mathematicians who, in the mid-20th century, basically invented the study of random networks.
+They asked a really simple question.
+If you have a bunch of isolated points and you randomly start drawing lines between them, at what point does the whole thing suddenly connect together?
+Like dropping a bunch of buttons on the floor and randomly tying threads between pairs of them.
+Eventually, you'll pick up one button and the whole pile will just come up with it.
+That's a perfect analogy.
+And in classical Erdos-Renny theory, that transition happens very abruptly.
+But the paper quickly notes that classical models don't work for software.
+Why not?
+Because Erdos-Renny assumes every button has roughly the same chance of getting a thread.
+The resulting network has a bell curve distribution of connections.
+Most nodes have an average number of links.
+But software doesn't look like a bell curve.
+It has a heavy-tailed or power law distribution.
+Right, right.
+Because you have thousands of tiny packages that maybe have one or two connections.
+And then you have massive utility libraries like requests or URL lib in Python that are imported by literally millions of other projects.
+They are massive hubs.
+Exactly.
+Because of those hubs, the author relies on something called the Molloy-Reed criterion, which is specifically tailored for networks with highly variable connection counts.
+Okay.
+The core of this criterion centers on a specific mathematical ratio denoted as K.
+Yeah, I was looking at this formula in the notes.
+K equals the average of the squared degrees divided by the average degree.
+And for anyone not steeped in graph theory, the degree of a dot is just how many lines connect to it.
+Right.
+But why square the degrees?
+If you want to know how connected a network is, why not just take the average number of connections?
+This is a crucial mechanical point.
+The text explicitly warrants that just taking the mean degree is a terrible summary for software.
+Let's actually do the math out loud to see why squaring them matters so much.
+Okay.
+Let's do it.
+Imagine a network with 10 packages.
+Nine of those packages only have one connection each.
+But the 10th package is a massive hub with 100 connections.
+Okay.
+So a total of 109 connections across 10 packages.
+The average degree is roughly 11.
+Right.
+And an average of 11 makes the network sound moderately connected.
+It completely masks the reality that there is one massive super hub controlling everything.
+Ah, I see where this is going.
+Now let's look at the numerator of the K-ratio, the average of the squared degrees.
+You square the ones, which stays one, but you square that 100 and it becomes 10,000.
+Oh, wow.
+Yeah.
+Suddenly, the math heavily penalizes or rather heavily highlights the hubs.
+By dividing the average of the squares by the standard average, the K-ratio mathematically
+forces those giant hubs to reveal themselves.
+It tells you how much the network relies on centralized choke points.
+That makes so much sense.
+It mathematically exposes the gravity of the big packages.
+And the paper states that if this K-ratio is greater than 2, the network enters the supercritical
+regime.
+What exactly does supercritical mean in this context?
+It means a giant component emerges.
+Okay.
+This isn't just a large cluster.
+It's a massive interconnected web that scales with the size of the whole network.
+So it's everywhere.
+Basically, if a software graph is supercritical, it means a huge portion of the code is mutually
+accessible.
+A virus or a vulnerability isn't isolated.
+It has the highways to travel almost anywhere.
+But the author doesn't just blindly trust this K-formula either.
+They offer a brilliant, specific example of how this mathematical threshold can trick you
+if you aren't careful.
+Yes, the archipelago example.
+Exactly.
+Let's walk through it because it shows the danger of relying on averages, even weighted
+averages.
+Imagine a graph made entirely of isolated four vertex cliques.
+Okay.
+So picture an archipelago.
+Little islands of code.
+On each island, there are exactly four dots.
+And on that specific island, every dot connects to the other three.
+Right.
+It's a perfectly interconnected little square.
+Right.
+But, and this is the key, none of the islands connect to each other.
+Right.
+So on every single island, every dot has exactly three connections.
+This means the average degree of the whole network is three.
+The square of three is nine.
+So the average of the squares is nine.
+Following you?
+If you run the Molloy-Reed math, nine divided by three, your k ratio is exactly three.
+And remember the rule we just talked about.
+If k is greater than two, the math says you are in the supercritical regime, and you should
+expect a massive, giant component connecting everything.
+But here, k is three.
+But if we look at our physical map of the archipelago, we just have a bunch of tiny,
+isolated islands.
+No single connected component is larger than four vertices.
+Exactly.
+The math says expect a giant continent, but reality is a bunch of rowboats.
+So why did the math fail?
+Well, it didn't fail so much as it meant an edge case it wasn't designed for.
+The k ratio describes the typical behavior in a random ensemble of graphs.
+It assumes connections are made somewhat independently.
+Oh, and the islands aren't independent.
+Right.
+In this island example, the graph is perfectly unnaturally clustered.
+It's highly atypical.
+The author uses this to prove a limitation.
+k measures the propensity of a network to branch out, but it absolutely does not guarantee
+that the specific, heavily clustered code sitting on your laptop is actually a giant
+superconduct.
+Which brings up a fascinating distinction the paper makes about threat models, because, you
+know, if we are looking for how things connect, traditional network theorists and cyber attackers,
+they actually want completely different things.
+Very true.
+You know, network theorists, they often look for what they call strong connectivity, and
+that's like measured by a direct, let's see, like a directed version of the ratio.
+So it's like k-dir.
+When k-dir is greater than one, you expect a giant strongly connected component.
+And strongly connected in directed graphs means that not only can you get from point A to
+point B following the arrows, but there is also a path following the arrows to get from
+point B back to point A.
+Right.
+I was thinking about this like a water system.
+Traditional network theorists are essentially looking for a whirlpool.
+They want a system where the water can circle endlessly, flowing from the top down to the
+bottom, and being pumped right back up to the top.
+That's a good visual.
+But if you are a hacker executing a supply chain attack, you do not need a whirlpool.
+You just need a water tower and a drain.
+That is a highly accurate way to frame it.
+You just need gravity to pull the water down one time.
+Exactly.
+An attacker just needs a pure source, say a maliciously injected dependency at the very top
+of the software chain, to reach a pure sync, which is your sensitive operation, like a
+database deletion command at the bottom.
+They don't need to go backwards.
+Right.
+The code execution doesn't need to flow back up to the malicious package.
+Therefore, having a k-dir greater than one is not a prerequisite for a massive compromise.
+A directed chain of a thousand packages has a k-dir of zero because nothing flows backward.
+But a single attack at the start can reach all 1,000 downstream targets.
+The operational threat isn't a loop.
+It's a one-way street of damage.
+But this raises a methodological problem for the author.
+What's that?
+Well, we can measure a software graph, find it has heavy clustering or a high k-ratio.
+But is that actually evidence of a vulnerable malicious structure?
+Or is that just what natural human-written software looks like?
+Oh, interesting.
+To prove that the vulnerabilities we find are structurally significant, we have to create
+a control group.
+We need a null ensemble to compare reality against.
+Let's get into the mechanics of this control group.
+How do you create a randomized baseline for something as complex as a software architecture?
+The paper proposes creating random graphs that act as our null hypothesis.
+But they have to be fair comparisons.
+You can't just throw dots on a page.
+Right.
+That wouldn't mean anything.
+Exactly.
+The random graphs must perfectly preserve three strict properties from the original software.
+The in-degree of every vertex, the out-degree of every vertex, and the package labels.
+Meaning if my calculate-tax function originally had two functions calling it and it called five
+other functions, it must keep exactly two incoming lines and five outgoing lines in the randomized
+version.
+Yes, exactly.
+It preserves the local traffic volume of every single piece of code, but it completely scrambles
+who is talking to whom.
+Got it.
+And to do this scrambling, the author uses a technique called directed double-edged swaps.
+Let me make sure I understand the mechanics of the swap.
+Why a double-edged swap?
+Why not just pick one line and move its endpoint?
+Because if you just take a line pointing from A to B and you move its sort of points from A
+to C, you just ruin the degrees.
+Oh, I see.
+B just lost an incoming connection, and C just gained one.
+Your control group no longer matches the original software's local traffic rules.
+Oh, okay.
+So you have to swap pairs.
+Let's say connection one goes from point A to point B. Connection two goes from point
+C to point D. To scramble them without changing the totals, you swap the destinations.
+So now A points to D and C points to B.
+Exactly.
+Every point still has the exact same number of arrows leaving and entering.
+Precisely.
+As long as doing that swap doesn't create an illegal self-loop, like a function calling itself when it didn't before,
+or a duplicate edge, you make the swap.
+By executing this double swap thousands of times, you create a deeply randomized version of your software graph
+that still obeys all the macro rules of the original.
+But the author hits a mathematical wall here.
+Something called a disconnected state space, or irreducibility.
+This is where it gets really deep into the weeds, but the implications for researchers are huge.
+What exactly causes the state space to disconnect?
+It boils down to the fact that just because you are randomly swapping edges doesn't mean you can
+mathematically reach every possible valid graph shape.
+You can get trapped in a pocket of possibilities.
+How?
+If you can swap any two edges, shouldn't you eventually be able to shuffle into any combination?
+Not with the constraints we have.
+The paper gives a minimalist example.
+Imagine just three dots, vertices 1, 2, and 3.
+The rule is that each dot must have exactly one incoming edge and one outgoing edge.
+The only way to satisfy that rule is a directed cycle, a triangle.
+One points to two, two points to three, and three points to one.
+Okay, a closed loop.
+Now, there are two valid ways that triangle can flow, clockwise or counterclockwise.
+Both are perfectly valid configurations with the exact same in and out degrees.
+Right.
+But if you start with the clockwise triangle and you try to use a double-edged swap to randomize it,
+you literally can't.
+Wait, let me think about that.
+If I take the edge from 1 to 2 and the edge from 2 to 3 and I try to swap their destinations,
+Right.
+1 would point to 3, but 2 would point to 2.
+Exactly.
+You instantly create an illegal self-loop.
+Any valid swap you attempt between two edges in that triangle will break the rules.
+You are stuck.
+Oh, wow.
+You could never randomly swap your way from the clockwise triangle to the counterclockwise triangle.
+The state space of all possible graphs is physically disconnected.
+So, if the randomizer gets stuck in one isolated corner of the universe and can't explore all the possibilities,
+how can we trust the comparison?
+I mean, it's like trying to calculate the average temperature of the Earth,
+but your thermometer is physically locked inside a walk-in freezer.
+The control group is inherently biased.
+This is a major issue in Markov chain Monte Carlo simulations.
+Membership in a null ensemble doesn't magically guarantee that your samples are statistically fair or exchangeable.
+So how do they fix it?
+To solve this, the author implements a method developed by Bezag and Clifford called the pivot construction.
+I read this part a few times.
+Can we use an analogy here?
+I was trying to map it out.
+It's like shuffling a deck of cards, right?
+Let's run with that.
+How does the card shuffle map to the state space?
+Well, if you only swap two cards once, you haven't shuffled the deck.
+The deck is heavily biased by whatever order it started in.
+You are stuck in a disconnected state relative to a truly random deck.
+Right.
+If you deal hands from that deck and compare them to my perfectly randomized deck,
+the statistical comparison is totally invalid because our origins were different.
+Yes, exactly.
+So the pivot construction is the mathematical equivalent of giving the deck a massive standardized riffle shuffle before you deal the hands.
+Instead of comparing your observed software graph to a bunch of random graphs generated from scratch,
+you take your observed graph and you swap edges for a huge number of steps.
+Let's call it L steps.
+Right. You thoroughly shuffle.
+You thoroughly shuffle the deck to a new randomized state.
+This new state is the pivot.
+That is the crucial step.
+The pivot is the newly shuffled deck.
+From that exact pivot deck, you then run multiple independent chains of further shuffling to create your B comparison graphs.
+Because both your original graph, traced backward from the pivot,
+and your simulated graphs, traced forward from the pivot,
+can map their lineage back to this shared, reversible pivot point,
+every hand dealt is mathematically fair.
+It's a closed loop of fairness.
+Yeah.
+It ensures your statistical comparison is actually valid,
+even if the entire universe of possible card combinations hasn't been explored.
+That is a phenomenal way to explain the pivot construction.
+It forces statistical exchangeability under the null hypothesis.
+It grounds the comparison in rigorous fairness.
+So when we say this software is unusually vulnerable,
+we know it's a mathematical fact, not an artifact of a bad randomizer.
+Okay, so our null model proves our software's connectivity isn't a fluke.
+We know the system is structurally vulnerable at a macro level.
+But how does an attacker actually exploit that?
+Moving from macroscopic statistics to microscopic reality,
+how do we find the specific microscopic path an attacker might take?
+This is where the paper shifts to finding actual witnesses and choke points.
+Right.
+Here's where it gets really interesting.
+Let's define the terminology.
+Finding a path on the graph simply means tracing a labeled walk from an entry vertex,
+the specific function where an attacker injects their code,
+to a sensitive set, the specific operation they want to hijack.
+But the author throws a massive bucket of cold water on this right away.
+They emphasize a crucial caveat.
+A graph path is only a candidate capability path.
+By candidate.
+This might be the most important practical takeaway for a developer listening to this.
+Just because a line exists on paper or on your full graph map
+does not mean it can actually execute in the real world.
+A graph witness is just structural proof.
+I want to dig into how that happens.
+Because if the code literally says function A calls function B,
+doesn't it call it?
+How can the map be wrong?
+The map isn't wrong.
+It's just static.
+It lacks the dimension of time and state.
+Oh.
+A sequence of calls might look perfectly connected structurally.
+But at runtime, it might require incompatible branch conditions.
+For example, function A might only call function B
+if a specific user role variable is set to admin.
+Right.
+But to reach function A in the first place,
+maybe the attacker had to exploit a vulnerability in a public portal
+that forcibly sets the user role to guest.
+So structurally, the path from the portal to A to B exists on the map.
+But functionally, it is impossible to traverse because the required variables contradict each other.
+Exactly.
+You also have conflicting file permissions,
+hardware constraints,
+or specific runtime states that the static parser simply cannot see.
+So a graph witness is basically saying,
+hey, there is a physical road between these two cities,
+but it doesn't tell you if there is a massive steel gate
+locked across the road halfway down
+or if the bridge is currently drawn up.
+It's a candidate path.
+Yes.
+The graph tells you exactly where to aim your magnifying glass,
+but a human or a dynamic execution engine still has to investigate
+to see if it's a truly executable exploit.
+Yes.
+And when we do map these candidate attack routes,
+we need a vocabulary to describe the robustness.
+How hard is it for a defender to block the attack?
+They use a concept called disjointness.
+Let's get into disjointness,
+because the paper splits it into two flavors,
+edge disjoint and vertex disjoint paths.
+What is the mechanical difference?
+Think of the entry point and the sensitive target.
+How many distinct ways can the attacker get there?
+If you have multiple paths that don't share a single edge,
+meaning they don't use any of the same connections,
+those are edge disjoint paths.
+But there's a trap there, right?
+A huge trap.
+Two paths might use completely different edges,
+but they might both pass through the exact same intermediate vertex.
+Say they both utilize a shared utility function,
+like a universal string formatter.
+Okay.
+If that string formatter goes down, both paths break.
+If you have paths that share absolutely nothing,
+no edges and no intermediate vertices,
+those are vertex disjoint paths.
+Which brings us to the holy grail of defensive analysis,
+the essential vertices.
+An essential vertex is a specific piece of code
+that, if you remove it,
+completely eliminates every single route
+from the entry to the sensitive set.
+It is the ultimate choke point.
+Right.
+If you are a defender,
+finding an essential vertex is gold.
+It tells you exactly where to focus your patching efforts.
+It is gold for triaging, absolutely.
+But the author specifically warns
+against a naive approach to essential vertices.
+Identifying the choke point is just step one.
+You cannot just delete the essential vertex
+and declare the system secure.
+Right.
+I was thinking about this.
+What if the essential vertex is the core function
+that authenticates users
+or saves data to the hard drive?
+Exactly.
+If you just delete it,
+sure, you stopped the hacker's path,
+but you also bricked the entire software
+for legitimate users.
+Fixing a choke point usually means
+adding sanitization
+or permission checks inside that vertex,
+not just ripping it out of the wall.
+And to truly understand the difference
+between simply finding a path
+and understanding how vulnerable
+that path actually makes your system,
+the author takes a brilliant interdisciplinary leap.
+They borrow an analogy from material science,
+specifically the physics of porous batteries.
+I have to say,
+when I was reading the source notes
+and suddenly we were deep in the weeds
+of 3D porous electrodes,
+I was a bit lost.
+But when you unpack the mechanics of it,
+it is a phenomenal crossover insight.
+It requires some translation,
+but the physics map perfectly to software security.
+The author cites a study by Rodriguez et al.,
+which looked at the microstructures
+of four different 3D porous electrodes.
+So, batteries.
+Right.
+These are basically microscopic sponges
+made of conducting material.
+The researchers wanted to see
+how well they conducted electricity
+from one face of the sponge to the other.
+And the first thing they measured
+was something called spanning connectivity.
+Right.
+Spanning connectivity asks a binary question.
+Is there an unbroken physical path
+of conducting material
+from the inlet face to the outlet face?
+Like a flood fill.
+Yes.
+If you were to do a flood fill algorithm,
+like the paint bucket tool in Photoshop,
+starting at one side,
+would the paint eventually bleed through
+to the other side?
+And the data they got back
+was incredibly counterintuitive.
+They simulated four different
+microscopic sponge structures,
+all four of them successfully
+spanned the volume.
+The fractions of conducting material
+that spanned from side to side
+were almost identical,
+0.996, 0.999, 0.997, and 0.901.
+Very close.
+So, structurally,
+they all looked like nearly perfect,
+identical conductors.
+But then they simulated
+applying a voltage across the faces
+to measure the actual
+effective conductivity,
+how well electricity actually
+flowed through them in practice.
+And the conductivity varied wildly.
+Let me look at the numbers.
+The normalized conductivities were
+0.306, 0.303, 0.706, and 0.134.
+Wait, let me look at that.
+Three of those volumes had spanning sizes
+within three one thousandths of each other,
+0.996, 0.997, 0.999.
+They looked identical to the spanning metric.
+Yep.
+Yet their actual physical conductivity
+was 0.306, 0.303, and 0.706.
+The third one conducted electricity
+more than twice as well as the others.
+Exactly.
+Let's translate this physics lesson
+back into software security.
+Spanning a volume,
+doing that flood fill
+to see if electricity can get
+from the inlet to the outlet,
+is exactly the same concept
+as finding a witness path
+in a software graph.
+Okay, I'm tracking.
+It just proves that a structural connection
+exists from the attacker's entry point
+to the sensitive data.
+So a standard security scanner
+that just says warning, path found,
+is only measuring spanning connectivity.
+Precisely.
+And the conductivity of the battery
+is the security equivalent
+of the robustness of the attack.
+Oh, that makes so much sense.
+How many independent routes exist?
+What is the minimum cut,
+the minimum number of edges
+you'd have to sever
+to break the connection?
+How many choke points are there?
+It's the difference
+between a four-lane highway
+and a rickety wooden footbridge.
+They both span the river.
+If you just ask, can it cross?
+The answer is yes for both,
+but they conduct traffic
+very differently.
+Exactly.
+If a software path relies
+on a single, fragile choke point,
+it might span the system,
+but its conductivity
+for an attacker is very low.
+It's cheap to remediate.
+You just guard that one bridge.
+But a system with multiple
+vertex disjoint attack routes
+has high conductivity.
+It is highly vulnerable,
+even if the sheer length
+of the paths
+looks identical on paper.
+Now, academic rigor requires us
+to point out the flaws,
+and the author responsibly
+applies the brakes here.
+They issue cautions
+about fully relying
+on the quantitative math
+of that battery study.
+Right, because it wasn't
+a perfect study.
+No, it wasn't.
+The author notes
+that the Rodriguez study
+lacked experimental validation.
+It was purely simulated
+on a computer.
+Furthermore,
+the massive conclusion
+about the variance
+in conductivity
+was based on a Pearson correlation
+of only four data points.
+Only four?
+Yeah.
+Four microstructures
+is a tiny sample size
+to build a generalized law upon.
+The author also mentions
+that the battery paper
+had confusing
+and contradictory definitions
+for its own bottleneck index.
+Okay.
+So, while the qualitative analogy
+is brilliant
+for changing how we think
+about software robustness,
+the actual mathematical formulas
+from the battery physics
+shouldn't be blindly pasted
+into network security.
+That's totally fair.
+It's a conceptual framework,
+not a plug-and-play algorithm.
+But speaking of testing
+mathematical theories,
+we've talked about
+a lot of high-level math,
+K-ratios,
+pivot constructions,
+minimum cuts.
+How do we know
+any of this actually works?
+We have to test it.
+Right.
+That brings us
+to a crucial part
+of the paper
+where the author
+rigorously stress-tests
+these metrics
+in a synthetic sandbox.
+And they didn't just use
+standard random graphs
+for this sandbox.
+They used the Chung-Loo model.
+What is that?
+As we discussed earlier,
+standard Erdos-Renyi graphs
+produce bell curves,
+which don't look like software.
+The Chung-Loo model
+allows researchers
+to generate random graphs
+that precisely match
+the heavy-tailed
+power law degree distributions
+we actually see
+in software ecosystems.
+They force the randomizer
+to create hubs.
+The author ran
+four key experiments
+in this synthetic sandbox,
+and I want to look at them
+as a unified narrative,
+you know,
+a quest to see if
+the math survives
+contact with reality.
+First,
+they had to prove
+the thresholds
+weren't just theoretical.
+They generated
+a network of
+3,000 vertices,
+3,000 simulated
+pieces of code,
+and watched what happened
+as they cranked up
+the connectivity.
+Right.
+What did the data show
+about the
+Molloy-Reed-K ratio?
+It proved the theory,
+but with a vivid reality check.
+As the network
+became more connected,
+the K ratio grew.
+When K went from
+2.77 to 5.76,
+the size of the largest
+weakly connected component,
+the giant continent of code,
+jumped from holding
+53.9% of the graph
+to a staggering
+93.9% of the graph.
+So it proves that
+the ratio is highly accurate
+at marking the onset
+of the tipping point.
+The moment K gets high,
+the graph coalesces
+into a monolith.
+Yes,
+but it also confirmed
+the limitation we discussed
+with the archipelago example.
+The ratio marks the onset,
+but it doesn't predict
+the exact size
+or shape of the component.
+It just tells you
+that you're operating
+in a regime
+where massive connectivity
+is the norm.
+Okay,
+so the threshold theory
+holds up.
+Next,
+they had to test
+their control group methodology.
+This was the irreducibility test.
+This goes back
+to our card shuffling analogy
+with the directed
+double edge swaps.
+Yes,
+the six vertex sandbox.
+Right,
+they tested this
+on a tiny sandbox
+of just six vertices
+to see how often
+the randomizer
+got stuck
+in a disconnected state space.
+And the results
+were stark.
+They found that
+even on a tiny graph,
+if you used
+unrestricted swaps,
+the state space
+was disconnected
+and up to 39%
+of the classes tested.
+The randomizer
+got trapped
+39% of the time.
+Wow.
+But it gets worse.
+They also tested
+a stricter swap method
+called Variant B,
+which forced swaps
+to only happen
+between the exact
+same pair of packages,
+trying to preserve
+even more structure.
+How did Variant B perform?
+It failed catastrophically.
+It was disconnected
+95% of the time.
+95%.
+Yes.
+This proved
+beyond a shadow
+of a doubt
+that a reachable component
+is a real
+mathematical restriction.
+If you use
+the wrong null model
+or don't use
+the pivot construction
+to properly shuffle
+the deck,
+your control group
+is fundamentally
+broken 95%
+of the time.
+Any statistical
+conclusions you draw
+from it
+are basically garbage.
+That is a massive
+red flag
+for any research
+here doing
+statistical analysis
+on networks.
+You can't skip
+the rigorous math.
+Okay.
+So the threshold works,
+the control group
+requires the pivot
+construction.
+Now for the third test,
+which honestly sounds
+like a spy novel,
+detecting planted paths.
+My favorite part.
+The author purposefully
+hid a secret malicious path,
+four packages long,
+inside the synthetic graphs.
+Then they tested
+two different
+statistical methods
+to see which one
+could find the hidden threat.
+They wanted to compare
+path-level statistics
+against global statistics.
+They used the
+distance statistic,
+which looks for
+unusually short paths
+between specific points,
+and compared it
+against the
+forward-reach statistic,
+which just looks
+at the sheer volume
+of code
+an entry point
+can touch globally.
+Which one won?
+The distance statistic
+successfully detected
+the planted path
+with 85% power.
+It was highly effective
+at isolating the signal.
+And the forward-reach statistic?
+It completely failed.
+It only had a 7.5%
+power to detect the plant.
+Wait, why such a massive failure?
+It seems like if a package
+suddenly reaches
+a sensitive target,
+its forward-reach
+should spike.
+That would be true
+in a sparse network.
+But remember the first test.
+The graph was already
+operating in the
+supercritical regime.
+Oh.
+It was already past
+the connectivity threshold.
+When everything
+is highly connected,
+a global statistic
+like forward-reach
+is useless.
+Because almost every
+starting point
+can reach a huge
+portion of the graph.
+Everything touches everything.
+Exactly.
+The background noise
+is deafening.
+It beautifully proved
+the author's argument.
+Global macroscopic statistics
+are useless
+for finding specific
+hidden paths
+once a network is dense.
+You must use
+path-level statistics.
+Which flows perfectly
+into the final
+synthetic test.
+Minimum cut
+versus the funnel.
+The author planted
+three different routes
+from an entry point
+to a sensitive set.
+But they specifically
+designed it as a funnel.
+All three routes
+pass through a single
+shared hub vertex
+before branching out again.
+They wanted to test
+the edge disjoint
+versus vertex disjoint
+algorithms.
+Right.
+This is the ultimate test
+of the choke point theory.
+When they ran the
+edge disjoint count
+on this funnel plant,
+the algorithm returned
+a value of three.
+It saw three independent
+edges entering
+the sensitive set,
+so it assumed
+there were three
+totally independent paths.
+But that's a dangerous
+illusion.
+If a defender
+believes that,
+they think they have
+to patch three
+separate vulnerabilities.
+But they all pass
+through the hub.
+Exactly.
+And that's why
+the vertex disjoint
+count was the hero.
+It accurately
+returned a value
+of one.
+It recognized
+that mathematically,
+because all routes
+share that single hub,
+there is fundamentally
+only one internally
+disjoint route.
+That's awesome.
+Even better,
+when the algorithm
+generated its list
+of essential vertices,
+that single hub
+was successfully listed
+as a critical choke point
+in 39 out of the 40
+test graphs.
+39 out of 40.
+That is incredible accuracy.
+It proves that the math
+can actually automate
+the discovery of the
+most critical vulnerability
+points in a massive system.
+But of course,
+theory is great,
+and synthetic sandboxes
+are clean and
+mathematically pure.
+Very true.
+What happens when you
+take these pristine
+mathematical tools
+and run them on
+real, messy,
+chaotic,
+human-written code?
+Because humans do
+weird things
+when they code.
+They absolutely do.
+This brings us
+to the climax
+of the paper,
+the Python pilot study.
+The author took
+two highly popular
+real-world Python projects
+to test the methodology
+in the wild.
+Okay.
+What were they?
+The first project
+was built around
+VirtualEnv,
+which is a staple tool
+for Python developers
+for creating
+isolated environments.
+They included
+its dependencies,
+dislib,
+file lock,
+and platform dirs.
+The second project
+centered on
+GitPython,
+with its dependencies
+GitDB and
+SMMF.
+Now, they couldn't
+just look for
+general connectivity.
+They needed a target.
+They defined a very
+specific,
+very dangerous,
+sensitive set.
+They were looking
+for any path
+that could reach
+functions that
+launch external
+processes.
+We are talking
+about things like
+the subprocess module
+or OS.system
+in Python.
+And for context,
+if an attacker
+can reach those
+modules and control
+the input,
+they can
+essentially execute
+arbitrary shell
+commands on your
+computer.
+So total control.
+Basically.
+They can bypass
+Python entirely
+and talk directly
+to your operating
+system.
+It's game over.
+It's the highest
+stakes target
+possible.
+Now, to analyze
+this, we have to
+talk about how the
+author actually
+extracted the map
+from the Python code.
+They built an
+abstract syntax
+tree, or AST,
+parsing the code
+to find the
+function definitions
+and the calls.
+But Python is a
+notoriously dynamic
+language, which
+makes building an
+accurate static map
+incredibly difficult.
+So the author built
+two different versions
+of the graph to
+compare.
+First, they built
+the strict graph.
+The strict graph
+is highly conservative.
+It only kept
+static, explicitly
+resolved calls.
+If function A
+clearly and directly
+calls function B
+by its exact,
+unique name, in a
+way the parser can
+guarantee without
+actually running the
+code, it gets an
+edge.
+What if it's vague?
+If there was any
+ambiguity, like
+dynamic dispatch, or
+calling a method
+on a variable whose
+type is unknown
+until runtime, the
+strict graph ignored
+it completely.
+And what were the
+findings on this
+highly conservative
+strict graph?
+Well, structurally,
+the shadow graphs
+were tiny.
+For the virtual
+N project, the
+shadow graph had a
+K-ratio of only
+2.88 and a
+directed K of 0.
+So, pretty safe
+looking.
+Right.
+So the macroscopic
+statistics had nothing
+interesting to say.
+It looked like a
+fairly safe, sparse
+network.
+But, when they ran
+the path-level
+witness search on the
+full graph, they
+found gold.
+Oh?
+Out of 525 external
+entry points in the
+distlib dependency,
+exactly six of them
+had a confirmed,
+structurally sound
+witness path straight
+to a process
+launcher.
+Six out of 525.
+That is incredibly
+precise targeting.
+But, we have to
+remember the massive
+caveat from earlier.
+The candidate path
+caveat.
+Yes.
+The paper digs into
+the nuanced, real-world
+reality of these six
+paths, and it's a
+perfect example of
+graph path versus
+executable path.
+For example, one of
+the paths went from
+an entry function
+called upload file,
+all the way down to
+a function called
+signed file, which
+triggered the
+subprocess.
+The graph showed a
+direct, unbroken
+line.
+But, when you look at
+the actual Python
+source code, you see
+the steel gate we
+talked about earlier.
+That call to
+signed file is
+buried inside an
+if statement.
+Right.
+The branch requires a
+specific signer
+argument to be passed
+into upload file.
+Even further, it
+requires an external
+signing program to
+actually be installed
+and available on the
+machine.
+Right.
+So, it perfectly
+illustrates the
+concept.
+A structural
+vulnerability exists,
+the code is wired
+together, but it
+requires highly
+specific runtime
+conditions to
+actually be
+exploited.
+The graph tells the
+security researcher
+exactly where to
+look, but a human
+still has to verify
+if the door can
+actually be unlocked
+by an attacker.
+Exactly.
+So, that was the
+strict graph.
+It found six
+highly specific but
+conditional paths.
+But then, the author
+introduces the
+matched graph.
+And the results of
+this test completely
+inverted my
+expectations.
+So, what does this
+all mean?
+Let's get into this,
+because this is where
+the reality of dynamic
+languages really
+rears its head.
+What did the
+matched graph do
+differently?
+The matched graph
+attempts to solve
+the problem of
+unresolved calls that
+the strict graph
+ignored.
+In Python, you
+often see code that
+just says, call the
+update method on
+this object.
+But, statically,
+without running the
+code, the parser
+doesn't know what
+class that object
+belongs to.
+Right, it could be
+anything.
+Is it a database
+object, a dictionary,
+a custom class?
+The strict graph
+dropped those.
+The matched graph,
+however, tried a
+heuristic approach.
+It linked them by
+name.
+Oh, boy.
+If it saw an
+unresolved call to a
+method named
+update, it boldly
+drew an edge to
+every single
+analyzed method
+named update
+across the entire
+project.
+That sounds like a
+recipe for absolute
+chaos.
+Update is probably
+one of the most
+common programming
+verbs in existence.
+It was an explosion.
+Suddenly, the graph
+ballooned.
+The K-ratio shot up
+to 11.87,
+massively supercritical.
+Wow.
+And instead of six
+entry points having a
+witness path to a
+launcher, 207 entries
+suddenly had witnesses.
+Wait, really?
+Yeah.
+207?
+That's almost half the
+entry points in the
+library.
+Was the software really
+that fundamentally
+broken?
+No, and that's the
+crucial lesson.
+Okay.
+The author reveals a
+glaring false positive to
+demonstrate exactly why
+this explosion happened.
+Okay, let's hear it.
+In the dependency
+git-db, there was a
+basic write method that
+called an update method
+on a local, harmless
+hash object.
+Because of the
+aggressive rules of
+the matched graph, that
+call got mistakenly
+linked to a completely
+unrelated, highly
+sensitive update method
+in the main git-python
+application, simply
+because they shared the
+exact same English word
+as a name.
+It was a complete
+hallucination.
+A structural
+hallucination caused by
+the mapmaker's
+assumptions.
+That is such a vital
+insight for anyone
+building or buying
+security tools.
+It shows the
+incredible, almost
+dangerous sensitivity
+of structural screens
+to how you extract the
+data in the first
+place.
+It really does.
+If you use a strict
+graph, you have
+terrifying blind spots.
+You might miss a
+massive real attack
+path simply because
+the code was too
+dynamic for your
+parser to understand
+statically.
+But if you use a
+matched graph to try
+and cover those blind
+spots by guessing, you
+introduce massive
+hallucinations.
+You connect things that
+have nothing to do
+with each other, creating
+terrifying, but entirely
+fake vulnerability maps
+that waste everyone's
+time.
+It proves mathematically
+what many developers
+know intuitively.
+Negative findings, a
+scanner saying, we
+found zero
+vulnerabilities, only
+hold true within the
+specific abstraction you
+chose.
+If you use this strict
+graph and found zero
+paths, you aren't
+perfectly safe.
+You are only safe
+against statically
+resolvable attacks.
+The unresolved calls
+remain a vast, dark
+matter in your software
+universe.
+So as we bring this
+deep dive to a close,
+let's quickly recap the
+journey.
+We started by defining
+our maps, the
+microscopic full graph
+and the macroscopic
+boundary crossing
+shadow graph.
+We explored the
+tipping points of
+network thresholds,
+realizing that
+attackers don't need a
+strongly connected
+whirlpool.
+They just need a
+single drain.
+We learned how to
+build a mathematically
+rigorous control group
+using the pivot
+construction, like a
+standardized deck
+shuffle, to ensure
+our comparisons are
+actually valid.
+We also took that
+fascinating detour into
+materials science, using
+the spanning
+conductivity of 3D
+porous batteries to
+understand the
+difference between
+simply finding a
+single fragile attack
+path versus calculating
+the high conductivity of
+multiple robust
+independent routes.
+Right.
+We saw the math prove
+itself in a synthetic
+sandbox, successfully
+detecting hidden paths
+and isolating essential
+choke points, even when the
+graph was super critical.
+And finally, we threw it
+all against the messy
+reality of actual
+Python code, discovering
+how the way we build
+our map can either
+leave us with blind
+spots or overwhelm us
+with hallucinated name
+collisions.
+Which leads us to the
+final thought we want to
+leave you with today.
+If you think about the
+implications of that
+final Python pilot
+study, it raises a
+profound structural
+question for the future
+of software security.
+A massive, growing
+portion of modern
+software relies heavily on
+dynamic, runtime
+behavior.
+Code that decides what
+it's going to do, what
+types of handling, and
+what methods it's calling
+at the exact millisecond
+it executes.
+Yeah.
+As we saw, this behavior
+cannot be easily statically
+resolved without creating
+those massive name
+collisions.
+So, the question we have to
+ask ourselves is this.
+Are our current maps of
+the software supply chain
+fundamentally incomplete?
+Are we deploying all of our
+security resources trying to
+map a static landscape when
+in reality, the most
+dangerous roads only
+appear the moment the
+attacker starts driving on
+them?
+It's a heavy thought to
+mull over next time you
+type NPM install or PIP
+install and watch hundreds
+of unknown packages
+download into your
+project.
+Thank you for joining us on
+this deep dive into the
+hidden architecture of the
+software we rely on every
+single day.
+Keep questioning your maps.

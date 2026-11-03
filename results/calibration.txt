@@ -1,0 +1,8 @@
+n 200 shadow edges 315 mode A acceptance 0.715
+trials 1000 B 39 binomial s.e. at 0.05: 0.0069
+naive L = 78 (0.25 m) rejection rate 0.007
+naive L = 315 (1.00 m) rejection rate 0.034
+naive L = 1575 (5.00 m) rejection rate 0.043
+pivot L = 78 (0.25 m) rejection rate 0.051
+pivot L = 315 (1.00 m) rejection rate 0.045
+pivot L = 1575 (5.00 m) rejection rate 0.05
